@@ -23,18 +23,23 @@ int main(int argc, char **argv)
     char *err;
 
     char *so = argc > 1 ? argv[1] : "./run.so";
+
+    dlopen(NULL, RTLD_GLOBAL | RTLD_NOW);
+    ERR;
+
     handle = dlopen(so, RTLD_LAZY);
     ERR;
 
-    run = dlsym(handle, "run");
+    GetCursorPos(NULL);
     ERR;
 
     hs_init = dlsym(handle, "hs_init");
     ERR;
     hs_exit = dlsym(handle, "hs_exit");
 
+    run = dlsym(handle, "run");
+
     hs_init(&argc, &argv);
-    GetCursorPos(NULL);
     run();
     hs_exit();
 

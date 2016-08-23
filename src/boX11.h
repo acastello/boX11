@@ -1,3 +1,6 @@
+#ifndef _BOX11_H
+#define _BOX11_H
+
 #include <windows.h>
 
 
@@ -14,3 +17,12 @@ HWND *getWins(char *filter, int flags);
 
 HWND *getWinsBy(int (*filter_fun)(HWND));
 
+int messageBox(char *body, char *title, int flags);
+
+void sendKey(HWND hwnd, char vk, char ch);
+
+char *getName(HWND hwnd);
+
+char *getClass(HWND hwnd);
+
+#endif
