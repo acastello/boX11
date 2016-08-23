@@ -18,10 +18,19 @@ loader.exe: loader.c
 	winegcc -ldl $^ -o $@
 
 main.so: boX11.c BoX11.hs Main.hs export.hs
-	ghc -shared -fPIC -dynamic export.hs -optl-lboX11 /usr/lib/ghc-8.0.1/rts/libHSrts-ghc8.0.1.so -o $@
+	ghc -shared -fPIC -dynamic export.hs -lboX11 /usr/lib/ghc-8.0.1/rts/libHSrts-ghc8.0.1.so -o $@
 
 mainw.exe: mainw.c boX11.c boX11.h
-	winegcc -shared -fPIC mainw.c -o mainw.exe -lboX11
+	winegcc mainw.c -o mainw.exe -lboX11
 
 test: $(ALL)
 	./main.exe
+
+clean:
+	rm *.o *.hi
+
+force:
+	@echo $(wildcard *.o *.hi)
+
+install:
+	ln -s `readlink -f libboX11.dll.so` /usr/lib/libboX11.so

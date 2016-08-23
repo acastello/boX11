@@ -19,7 +19,7 @@ main = do
     -- messageBox "ñmsg" "ñtitle" >>= print
 
     putStrLn "sendKey:"
-    sendKey (head wins) (241 :: Word8) (241 :: Word8)
+    sequence ((\w -> sendKey w (241 :: Word8) (241 :: Word8)) <$> wins)
 
     putStrLn "getName:"
     sequence (getName <$> wins) >>= print
