@@ -25,4 +25,6 @@ char *getName(HWND hwnd);
 
 char *getClass(HWND hwnd);
 
+void test(HWND);
+
 #endif

@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <regex.h>
+#include <unistd.h>
+
+#include <sched.h>
 
 #include "boX11.h"
 
@@ -161,4 +164,23 @@ char *getClass(HWND hwnd)
     static char ret[1024];
     GetClassName(hwnd, ret, sizeof(ret));
     return ret;
+}
+
+/*******************************************************************************
+ *		getClass
+ */
+
+/*******************************************************************************
+ *		test
+ */
+void test(HWND hwnd)
+{
+    static int i = 0;
+    int j = i++;
+    printf("starting  %d\n", j);
+    getchar();
+    // SendMessage(hwnd, WM_KEYDOWN, 90, 0);
+    // sync();
+    // sched_yield();
+    printf("finishing %d\n", j);
 }

@@ -12,13 +12,13 @@ main.exe: main.c
 	winegcc $^ ./libboX11.dll.so -o $@
 
 libHSBoX11.so: BoX11.hs
-	ghc -shared -fPIC -dynamic $^ -o $@
+	ghc -shared -fPIC -dynamic -threaded $^ -o $@
 
 loader.exe: loader.c
 	winegcc -ldl $^ -o $@
 
 main.so: boX11.c BoX11.hs Main.hs export.hs
-	ghc -shared -fPIC -dynamic export.hs -lboX11 /usr/lib/ghc-8.0.1/rts/libHSrts-ghc8.0.1.so -o $@
+	ghc -shared -fPIC -dynamic -threaded export.hs -lboX11 /usr/lib/ghc-8.0.1/rts/libHSrts-ghc8.0.1.so -o $@
 
 mainw.exe: mainw.c boX11.c boX11.h
 	winegcc mainw.c -o mainw.exe -lboX11
@@ -27,7 +27,7 @@ test: $(ALL)
 	./main.exe
 
 clean:
-	rm *.o *.hi
+	rm $(wildcard *.o *.hi)
 
 force:
 	@echo $(wildcard *.o *.hi)

@@ -1,14 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module BoX11 (
-    getWins,
-    getWinsBy,
-    getCursorPos,
-    messageBox,
-    sendKey,
-    getName,
-    getClass,
-    ) where
+module BoX11 where
 
 import Foreign
 import Foreign.C
@@ -47,7 +39,7 @@ getWinsBy f = do
     peekArray0 0 ptr
     
 foreign import ccall "wrapper" mkF :: (Word64 -> IO CInt) -> IO (FunPtr (Word64 -> IO CInt))
-foreign import ccall "getWinsBy" 
+foreign import ccall unsafe "getWinsBy" 
     getWinsBy' :: FunPtr (Word64 -> IO CInt) -> IO (Ptr Word64)
 
 --------------------------------------------------------------------------------
@@ -79,7 +71,7 @@ foreign import ccall safe "messageBox"
 -- sendKey
 --------------------------------------------------------------------------------
 
-foreign import ccall unsafe "sendKey" 
+foreign import ccall safe "sendKey" 
     sendKey :: HWND -> Word8 -> Word8 -> IO ()
 
 --------------------------------------------------------------------------------
@@ -103,3 +95,16 @@ getClass hwnd = do
 
 foreign import ccall unsafe "getClass" 
     getClass' :: HWND -> IO CString
+
+--------------------------------------------------------------------------------
+-- 
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+-- test
+--------------------------------------------------------------------------------
+
+foreign import ccall safe "test"
+    test :: HWND -> IO ()
+
