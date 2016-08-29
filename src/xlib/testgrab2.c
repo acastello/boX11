@@ -6,37 +6,35 @@
 int main(void)
 {
     XEvent ret;
-    XKeyEvent *kev;
-    XKeyEvent kevo;
+    XKeyEvent kev;
     Display *dpy = XOpenDisplay(NULL);
     Window root = DefaultRootWindow(dpy), 
            tar = 0x1200009;
+    int rev;
 
-    XGrabKey(dpy, 32, AnyModifier, root, 1, GrabModeAsync, GrabModeAsync);
+    XGrabKey(dpy, 32, AnyModifier, root, False, GrabModeAsync, GrabModeAsync);
     XGrabKey(dpy, 24, 0, root, 1, GrabModeSync, GrabModeSync);
 
     while (1) {
         XNextEvent(dpy, &ret);
-        if (ret.type != KeyRelease && ret.type != KeyPress)
+        if (ret.type != KeyRelease && ret.type != KeyPress) {
+            printf("type: %d\n", ret.type);
             continue;
-        kev = (XKeyEvent *) &ret;
+        }
+        kev = *(XKeyEvent *) &ret;
 
         printf(
                 "type: %d\n"
                 "keycode: %d\n"
-                "state: 0x%x\n\n", kev->type, kev->keycode, kev->state); 
+                "state: 0x%x\n\n", kev.type, kev.keycode, kev.state); 
 
-        kevo = *kev;
-        kevo.window = tar;
-        kevo.same_screen = True;
-        kevo.keycode = 32;
-        XSendEvent(dpy, tar, True, ret.type + 1, (XEvent *) &kevo);
-
-        switch (kev->keycode) {
+        switch (kev.keycode) {
             case 24:
                 goto exit;
-                break;
             default:
+                XGetInputFocus(dpy, &kev.window, &rev);
+                XSendEvent(dpy, kev.window, False, ret.type + 1, (XEvent *) &kev);
+
                 break;
         }
     }
