@@ -40,8 +40,7 @@ int main(void)
     }
 
 exit:
-    XUngrabKey(dpy, 32, AnyModifier, root);
-    XUngrabKey(dpy, 24, 0, root);
+    XUngrabKey(dpy, AnyKey, AnyModifier, root);
     XCloseDisplay(dpy);
     
     return 0;
