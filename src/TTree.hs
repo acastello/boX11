@@ -1,7 +1,10 @@
 module TTree where
 
 data TTree a b = TNode a b | TForest a [TTree a b]
-    deriving (Show, Eq)
+    deriving (Eq)
+
+instance (Show a, Show b) => Show (TTree a b) where
+    show = drawTTree
 
 drawTTree :: (Show a, Show b) => TTree a b -> String
 drawTTree ttree = unlines' $ draw' ttree where
@@ -44,9 +47,14 @@ instance Traversable (TTree a) where
 
 instance Monoid a => Monad (TTree a) where
     return = pure
+    TNode i x >>= f = case (f x) of
+        TNode _ y -> TNode i y
+        TForest _ ys -> TForest i ys
+    TForest i xs >>= f = TForest i $ map (>>= f) xs
 
 instance Show (IO a) where
     show _ = "()"
+
 type Binds = TTree Int (IO ())
 
 u = TNode "u0" 1
