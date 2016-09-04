@@ -38,6 +38,10 @@ foldT :: Monoid m => (a -> m) -> (TTree t a) -> m
 foldT f (TNode _ x) = f x
 foldT f (TForest _ xs) = foldMap (foldT f) xs
 
+instance Traversable (TTree a) where
+    traverse f (TNode i x) = (TNode i) <$> (f x)
+    traverse f (TForest i xs) = (TForest i) <$> (traverse (traverse f) xs)
+
 instance Show (IO a) where
     show _ = "()"
 type Binds = TTree Int (IO ())
@@ -45,4 +49,6 @@ type Binds = TTree Int (IO ())
 u = TNode "u0" 1
 v = TForest "v0" [TNode "v00" 2, TNode "v01" 3]
 w = TForest "w0" [TForest "w00" [TNode "000" 4, TNode "001" 5], TNode "w01" 6, TForest "w02" [TForest "w020" [TNode "w0200" 7]], TForest "w03" []]
+w' = print <$> w
 y = TForest "y0" [TForest "y00" [TNode "y000" 8]]
+
