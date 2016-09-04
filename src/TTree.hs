@@ -42,6 +42,9 @@ instance Traversable (TTree a) where
     traverse f (TNode i x) = (TNode i) <$> (f x)
     traverse f (TForest i xs) = (TForest i) <$> (traverse (traverse f) xs)
 
+instance Monoid a => Monad (TTree a) where
+    return = pure
+
 instance Show (IO a) where
     show _ = "()"
 type Binds = TTree Int (IO ())
