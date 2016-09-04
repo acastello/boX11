@@ -31,11 +31,12 @@ seqTTree (TNode a f) ttree = fmap f ttree
 seqTTree ftree (TNode i e) = fmap ($ e) ftree
 seqTTree ftree (TForest i xs) = TForest i (fmap (seqTTree ftree) xs)
 
--- instance Foldable (TTree a) where
-    -- foldr = foldrT
+instance Foldable (TTree a) where
+    foldMap = foldT
 
-foldrT f x (TNode _ y) = f y x
-foldrT f x (TForest _ ys) = foldr (foldrT f) x ys
+foldT :: Monoid m => (a -> m) -> (TTree t a) -> m
+foldT f (TNode _ x) = f x
+foldT f (TForest _ xs) = foldMap (foldT f) xs
 
 instance Show (IO a) where
     show _ = "()"
@@ -44,3 +45,4 @@ type Binds = TTree Int (IO ())
 u = TNode "u0" 1
 v = TForest "v0" [TNode "v00" 2, TNode "v01" 3]
 w = TForest "w0" [TForest "w00" [TNode "000" 4, TNode "001" 5], TNode "w01" 6, TForest "w02" [TForest "w020" [TNode "w0200" 7]], TForest "w03" []]
+y = TForest "y0" [TForest "y00" [TNode "y000" 8]]
