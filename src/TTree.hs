@@ -1,5 +1,7 @@
 module TTree where
 
+import Data.Bifunctor
+
 data TTree a b = TNode a b | TForest a [TTree a b]
     deriving (Eq)
 
@@ -51,6 +53,11 @@ instance Monoid a => Monad (TTree a) where
         TNode _ y -> TNode i y
         TForest _ ys -> TForest i ys
     TForest i xs >>= f = TForest i $ map (>>= f) xs
+
+instance Bifunctor TTree where
+    first f (TForest i xs) = TForest (f i) (first f <$> xs)
+    first f (TNode i x) = TNode (f i) x
+    second = fmap
 
 instance Show (IO a) where
     show _ = "()"
