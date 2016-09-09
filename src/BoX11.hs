@@ -10,7 +10,11 @@ import Foreign.Marshal.Array
 import Data.Bits
 import Data.ByteString as BS
 
+import TTree
+
 type HWND = Word64
+
+data KeySym = KeySym 
 
 --------------------------------------------------------------------------------
 -- getWins  
@@ -39,7 +43,7 @@ getWinsBy f = do
     peekArray0 0 ptr
     
 foreign import ccall "wrapper" mkF :: (Word64 -> IO CInt) -> IO (FunPtr (Word64 -> IO CInt))
-foreign import ccall unsafe "getWinsBy" 
+foreign import ccall safe "getWinsBy" 
     getWinsBy' :: FunPtr (Word64 -> IO CInt) -> IO (Ptr Word64)
 
 --------------------------------------------------------------------------------
@@ -95,6 +99,13 @@ getClass hwnd = do
 
 foreign import ccall unsafe "getClass" 
     getClass' :: HWND -> IO CString
+
+--------------------------------------------------------------------------------
+-- bindTree
+--------------------------------------------------------------------------------
+
+bindTree :: TTree KeySym (IO ()) -> IO ()
+bindTree t = return ()
 
 --------------------------------------------------------------------------------
 -- 
