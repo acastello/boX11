@@ -3,6 +3,7 @@ import qualified Data.Map as M
 import Control.Monad.Trans.Reader
 
 import Graphics.X11
+import Graphics.X11.Xlib.Extras (Event)
 
 import Data.Word
 import Data.IORef
@@ -15,15 +16,17 @@ word .<. shift = shiftL word shift
 infixl 7 .>. 
 word .>. shift = shiftR word shift
 
--- | X 
+-- | XEnv
+data XEnv = XEnv
+    { display   :: Display
+    , rootWindow   :: !Window
+    , mousePosition :: !(Maybe (Position, Position))
+    , currentEvent :: !(Maybe Event)
+    }
+
+-- | X reader monad
 type X a = ReaderT (Display) IO a
 
-runX :: X a -> IO a
-runX x = do
-    dpy <- openDisplay ""
-    ret <- runReaderT x dpy
-    closeDisplay dpy
-    return ret
 
 -- | KC stands for Key Combination
 -- the 16 first bits represent the keysym or keycode
