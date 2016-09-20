@@ -11,6 +11,7 @@ import Data.IORef
 import GHC.IO (unsafePerformIO)
 import Data.Bits
 import Numeric (showHex)
+import Data.Char (toLower)
 import qualified Text.Read as T
 import Text.Read.Lex (numberToInteger)
 
@@ -87,15 +88,15 @@ instance Read KC where
                                 else
                                     return (\t -> KCsym t 0 ks)
                         , do
-                                'c' <- T.get
+                                lit "c"
                                 c <- T.get
                                 return (\t -> KCsym t 0 (fromIntegral $ fromEnum c))
                         , do
-                                'k' <- T.get
+                                lit "k"
                                 n <- T.readPrec :: T.ReadPrec Word8
                                 return (\t -> KCcode t 0 n)
                         , do
-                                'm' <- T.get
+                                lit "m" T.+++ lit "mouse"
                                 n <- T.readPrec
                                 return (\t -> KCmouse t 0 n) ]
                     onrel <- T.choice
@@ -106,7 +107,8 @@ instance Read KC where
                             return False ]
                     return $ kc onrel
                     where
-                         readState pre = return pre
+                        readState pre = return pre
+                        lit = mapM (\c -> T.get >>= \c' -> if toLower c' == c then return c' else fail "")
 
 
 instance Ord KC where
