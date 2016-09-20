@@ -3,6 +3,8 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.IO.Class
 
+import Data.Char (toLower)
+
 import qualified Text.Read as T
 
 f1 :: Reader String Int
@@ -33,7 +35,7 @@ newtype N a = N (ReaderT String (StateT Double IO) a)
     deriving (Functor, Applicative, Monad, MonadReader String, MonadState Double, MonadIO)
 
 instance (Read a) => Read (N a) where
-    readPrec = T.prec 10 $ do
+    readPrec =  do
                     m <- T.step T.readPrec
                     T.Symbol "-" <- T.lexP
                     return (return m)
@@ -63,9 +65,12 @@ newtype T = T String
 
 instance Read T where
     readPrec = do
-                s <- state ""
+                s <- lit "AhaM"
                 return (T s)
             where
                 state pre = do 
                     s <- T.lexP
                     return (show s)
+                lit = mapM (\c -> T.get >>= \c' -> 
+                    if toLower c' == (toLower c) then return c' else fail "") 
+                    :: String -> T.ReadPrec String

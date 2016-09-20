@@ -12,6 +12,7 @@ import GHC.IO (unsafePerformIO)
 import Data.Bits
 import Numeric (showHex)
 import Data.Char (toLower)
+import Data.Maybe (fromMaybe)
 import qualified Text.Read as T
 import Text.Read.Lex (numberToInteger)
 
@@ -64,15 +65,21 @@ data KC =
 instance Show KC where
     show kc =
         let u = kc_onrelease kc
-            s = kc_state kc
-        in (show s) ++ "-" ++ (show' kc) ++ (if u then " Up" else "")
+            s = foldMap state' (kc_stateToList $ kc_state kc)
+        in s ++ (show' kc) ++ (if u then " Up" else "")
         where show' (KCcode _ _ i) = "0x" ++ showHex i ""
               show' (KCsym _ _ c) = keysymToString c
               show' (KCmouse _ _ m) = "mouse" ++ (show m)
-
+              state' kc = fromMaybe "" $ lookup kc
+                [ (shiftMask, "S-"), (lockMask, "Caps-"), (controlMask, "C-")
+                , (mod1Mask, "mod1-"), (mod2Mask, "mod2-"), (mod3Mask, "mod3-")
+                , (mod4Mask, "mod4-"), (mod5Mask, "mod5-"), (button1Mask, "btn1-")
+                , (button2Mask, "btn2-"), (button3Mask, "btn3-")
+                , (button4Mask, "btn4-"), (button5Mask, "btn5-") ]
+    
 instance Read KC where
         readPrec = T.parens $ do 
-                    s <- readState ""
+                    s <- readState 0
                     kc <- T.choice 
                         [ do
                                 str <- T.choice
@@ -86,19 +93,19 @@ instance Read KC where
                                 if ks == 0 then
                                     fail "invalid keysym string"
                                 else
-                                    return (\t -> KCsym t 0 ks)
+                                    return (\t -> KCsym t s ks)
                         , do
                                 lit "c"
                                 c <- T.get
-                                return (\t -> KCsym t 0 (fromIntegral $ fromEnum c))
+                                return (\t -> KCsym t s (fromIntegral $ fromEnum c))
                         , do
                                 lit "k"
                                 n <- T.readPrec :: T.ReadPrec Word8
-                                return (\t -> KCcode t 0 n)
+                                return (\t -> KCcode t s n)
                         , do
                                 lit "m" T.+++ lit "mouse"
                                 n <- T.readPrec
-                                return (\t -> KCmouse t 0 n) ]
+                                return (\t -> KCmouse t s n) ]
                     onrel <- T.choice
                         [ do
                             '\'' <- T.get
@@ -106,9 +113,22 @@ instance Read KC where
                         , do
                             return False ]
                     return $ kc onrel
-                    where
-                        readState pre = return pre
-                        lit = mapM (\c -> T.get >>= \c' -> if toLower c' == c then return c' else fail "")
+            where
+                readState st = T.choice
+                    ((\(k,s) -> do
+                        lit k
+                        readState (st .|. s))
+                    <$> modMap)
+                    T.+++ do
+                        return st
+                modMap = 
+                    [ ("S-", shiftMask), ("shift ", shiftMask), ("Caps-", lockMask)
+                    , ("CapsLock ", lockMask), ("C-", controlMask), ("ctrl ", controlMask)
+                    , ("control ", controlMask), ("mod1-", mod1Mask), ("M-", mod1Mask)
+                    , ("meta ", mod1Mask), ("A-", mod1Mask), ("alt ", mod1Mask)
+                    , ("mod2-", mod2Mask), ("Scroll-", mod2Mask), ("ScrollLock", mod2Mask) ]
+                lit = mapM (\c -> T.get >>= \c' -> 
+                    if toLower c' == toLower c then return c' else fail "")
 
 
 instance Ord KC where
@@ -122,7 +142,8 @@ lexic :: (Ord a, Ord b, Ord c) => a -> b -> c -> a -> b -> c -> Ordering
 lexic a1 b1 c1 a2 b2 c2 = 
     compare c1 c2 `mappend` compare b1 b2 `mappend` compare a1 a2
 
-kc_stateList s = [s .&. (1 .<. i) | i <- [0..12], testBit s i]
+kc_stateToList :: Modifier -> [Modifier]
+kc_stateToList s = [s .&. (1 .<. i) | i <- [0..12], testBit s i]
 
 kc_int :: KC -> Int
 kc_int (KCcode _ _ i) = fromEnum i
