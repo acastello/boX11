@@ -71,15 +71,16 @@ instance Show KC where
               show' (KCsym _ _ c) = keysymToString c
               show' (KCmouse _ _ m) = "mouse" ++ (show m)
               state' kc = fromMaybe "" $ lookup kc
-                [ (shiftMask, "S-"), (lockMask, "Caps-"), (controlMask, "C-")
-                , (mod1Mask, "mod1-"), (mod2Mask, "mod2-"), (mod3Mask, "mod3-")
-                , (mod4Mask, "mod4-"), (mod5Mask, "mod5-"), (button1Mask, "btn1-")
-                , (button2Mask, "btn2-"), (button3Mask, "btn3-")
-                , (button4Mask, "btn4-"), (button5Mask, "btn5-") ]
+                [ (shiftMask, "Shift-"), (lockMask, "Caps-"), (controlMask, "Ctrl-")
+                , (mod1Mask, "Mod1-"), (mod2Mask, "Mod2-"), (mod3Mask, "Mod3-")
+                , (mod4Mask, "Mod4-"), (mod5Mask, "Mod5-"), (button1Mask, "Btn1-")
+                , (button2Mask, "Btn2-"), (button3Mask, "Btn3-")
+                , (button4Mask, "Btn4-"), (button5Mask, "Btn5-") ]
     
 instance Read KC where
         readPrec = T.parens $ do 
                     s <- readState 0
+
                     kc <- T.choice 
                         [ do
                                 str <- T.choice
@@ -106,6 +107,7 @@ instance Read KC where
                                 lit "m" T.+++ lit "mouse"
                                 n <- T.readPrec
                                 return (\t -> KCmouse t s n) ]
+
                     onrel <- T.choice
                         [ do
                             '\'' <- T.get
@@ -121,15 +123,33 @@ instance Read KC where
                     <$> modMap)
                     T.+++ do
                         return st
-                modMap = 
-                    [ ("S-", shiftMask), ("shift ", shiftMask), ("Caps-", lockMask)
-                    , ("CapsLock ", lockMask), ("C-", controlMask), ("ctrl ", controlMask)
-                    , ("control ", controlMask), ("mod1-", mod1Mask), ("M-", mod1Mask)
-                    , ("meta ", mod1Mask), ("A-", mod1Mask), ("alt ", mod1Mask)
-                    , ("mod2-", mod2Mask), ("Scroll-", mod2Mask), ("ScrollLock", mod2Mask) ]
+                modMap = foldMap (uncurry zip) $ fmap repeat <$>
+                    [ (["S-", "shift "], shiftMask)
+                    , (["Caps-", "CapsLock "], lockMask)
+                    , (["C-", "ctrl ", "control "], controlMask)
+                    , (["mod1-", "mod1 ", "M-", "meta ", "A-", "alt"], mod1Mask)
+                    , (["mod2-", "mod2 ", "Num-", "NumLock "], mod2Mask)
+                    , (["mod3-", "mod3 ", "Scroll-", "ScrollLock "], mod3Mask)
+                    , (["mod4-", "mod4 ", "Win-", "Win ", "Cmd-", "Cmd ", "Super "], mod4Mask)
+                    , (["mod5-", "mod5 "], mod5Mask)
+                    , (["btn1-", "button1 "], button1Mask)
+                    , (["btn2-", "button2 "], button2Mask)
+                    , (["btn3-", "button3 "], button3Mask)
+                    , (["btn4-", "button4 "], button4Mask)
+                    , (["btn5-", "button5 "], button5Mask)
+                    ]
+                    -- [ ("S-", shiftMask), ("shift ", shiftMask), ("Caps-", lockMask)
+                    -- , ("CapsLock ", lockMask), ("C-", controlMask), ("ctrl ", controlMask)
+                    -- , ("control ", controlMask), ("mod1-", mod1Mask), ("mod1 ", mod1Mask)
+                    -- , ("M-", mod1Mask) , ("meta ", mod1Mask), ("A-", mod1Mask)
+                    -- , ("alt ", mod1Mask) , ("mod2-", mod2Mask), ("mod2 ", mod2Mask)
+                    -- , ("Num-", mod2Mask), ("NumLock ", mod2Mask), ("mod3-", mod3Mask)
+                    -- , ("mod3 ", mod3Mask), ("Scroll-", mod3Mask), ("ScrollLock", mod3Mask)
+                    -- , ("mod4-", mod4Mask), ("mod4 ", mod4Mask), ("Win-", mod4Mask)
+                    -- , ("Win ", mod4Mask), ("Cmd-", mod4Mask), ("Cmd ", mod4Mask)
+                    -- , ("Super ", mod4Mask), ("mod5-", mod5Mask), ("mod5 ", mod5Mask) ]
                 lit = mapM (\c -> T.get >>= \c' -> 
                     if toLower c' == toLower c then return c' else fail "")
-
 
 instance Ord KC where
     KCcode a1 b1 c1 `compare` KCcode a2 b2 c2 = lexic a1 b1 c1 a2 b2 c2
@@ -141,6 +161,11 @@ instance Ord KC where
 lexic :: (Ord a, Ord b, Ord c) => a -> b -> c -> a -> b -> c -> Ordering
 lexic a1 b1 c1 a2 b2 c2 = 
     compare c1 c2 `mappend` compare b1 b2 `mappend` compare a1 a2
+
+kc_setstate :: KC -> Modifier -> KC
+kc_setstate (KCcode u _ k) st = KCcode u st k
+kc_setstate (KCsym u _ c) st = KCsym u st c
+kc_setstate (KCmouse u _ m) st = KCmouse u st m
 
 kc_stateToList :: Modifier -> [Modifier]
 kc_stateToList s = [s .&. (1 .<. i) | i <- [0..12], testBit s i]
