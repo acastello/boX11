@@ -1,7 +1,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 import Control.Monad.Reader
-import Control.Monad.Trans.State
+import Control.Monad.State
 import Control.Monad.IO.Class
+
+import qualified Text.Read as T
 
 f1 :: Reader String Int
 f1 = do
@@ -27,13 +29,43 @@ f5 :: ReaderT String [] String
 f5 = do
     return "aasasdasdasd"
 
-newtype N a = N (ReaderT String IO a)
-    deriving (Functor, Applicative, Monad, MonadReader String)
+newtype N a = N (ReaderT String (StateT Double IO) a)
+    deriving (Functor, Applicative, Monad, MonadReader String, MonadState Double, MonadIO)
 
-runN :: N a -> String -> IO a
-runN (N a) str = runReaderT a str
+instance (Read a) => Read (N a) where
+    readPrec = T.prec 10 $ do
+                    m <- T.step T.readPrec
+                    T.Symbol "-" <- T.lexP
+                    return (return m)
+
+runN :: N a -> String -> Double -> IO (a, Double)
+runN (N a) str b = runStateT (runReaderT a str) b
 
 n1 :: N (String, String)
 n1 = do
     str <- ask
+    n2 >>= liftIO . print
+    get >>= put . (+1)
     return (str ++ "1", str ++ "2")
+
+n2 :: N Int
+n2 = do
+    str <- ask
+    modify (2*)
+    return (length str)
+
+-- n3 :: N Bool
+-- n3 = get
+
+
+newtype T = T String
+    deriving Show
+
+instance Read T where
+    readPrec = do
+                s <- state ""
+                return (T s)
+            where
+                state pre = do 
+                    s <- T.lexP
+                    return (show s)

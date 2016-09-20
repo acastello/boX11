@@ -1,6 +1,7 @@
 import qualified Data.Map as M
 
-import Control.Monad.Trans.Reader
+import Control.Monad.Reader
+import Control.Monad.State
 
 import Graphics.X11
 import Graphics.X11.Xlib.Extras (Event)
@@ -9,6 +10,9 @@ import Data.Word
 import Data.IORef
 import GHC.IO (unsafePerformIO)
 import Data.Bits
+import Numeric (showHex)
+import qualified Text.Read as T
+import Text.Read.Lex (numberToInteger)
 
 infixl 7 .<. 
 word .<. shift = shiftL word shift
@@ -20,12 +24,16 @@ word .>. shift = shiftR word shift
 data XEnv = XEnv
     { display   :: Display
     , rootWindow   :: !Window
+    , currentEvent :: !(Maybe XEventPtr)
     , mousePosition :: !(Maybe (Position, Position))
-    , currentEvent :: !(Maybe Event)
     }
 
+-- data XEnv = XEnv
+    -- { 
+
 -- | X reader monad
-type X a = ReaderT (Display) IO a
+-- newtype X a = X (ReaderT XEnv
+type X a = ReaderT XEnv IO a
 
 
 -- | KC stands for Key Combination
@@ -34,77 +42,100 @@ type X a = ReaderT (Display) IO a
 -- bit 30 indicates whether it's a keycode (0) or a keysym (1)
 -- bit 31 indicates whether it's to be triggered by KeyPress (0) or KeyRelease
 -- (1)
-type KC = Word32
+data KC = 
+        KCcode
+    { kc_onrelease  :: Bool
+    , kc_state      :: Modifier
+    , kc_keycode    :: KeyCode
+    }
+      | KCsym
+    { kc_onrelease  :: Bool
+    , kc_state      :: Modifier
+    , kc_keysym     :: KeySym
+    }
+      | KCmouse
+    { kc_onrelease  :: Bool
+    , kc_state      :: Modifier
+    , kc_button     :: Button
+    }
+    deriving (Eq)
 
-validKC :: KC -> Bool
-validKC kc = kc .&. 0xff /= 0
+instance Show KC where
+    show kc =
+        let u = kc_onrelease kc
+            s = kc_state kc
+        in (show s) ++ "-" ++ (show' kc) ++ (if u then " Up" else "")
+        where show' (KCcode _ _ i) = "0x" ++ showHex i ""
+              show' (KCsym _ _ c) = keysymToString c
+              show' (KCmouse _ _ m) = "mouse" ++ (show m)
 
-fromKeysym :: Integral a => a -> KC
-fromKeysym n = (fromIntegral n) .|. (1 .<. 30)
+instance Read KC where
+        readPrec = T.parens $ do 
+                    s <- readState ""
+                    kc <- T.choice 
+                        [ do
+                                str <- T.choice
+                                       [do 
+                                            T.Ident str' <- T.lexP
+                                            return str'
+                                       ,do
+                                            n' <- T.readPrec :: T.ReadPrec Integer
+                                            return (show n')]
+                                let ks = stringToKeysym str
+                                if ks == 0 then
+                                    fail "invalid keysym string"
+                                else
+                                    return (\t -> KCsym t 0 ks)
+                        , do
+                                'c' <- T.get
+                                c <- T.get
+                                return (\t -> KCsym t 0 (fromIntegral $ fromEnum c))
+                        , do
+                                'k' <- T.get
+                                n <- T.readPrec :: T.ReadPrec Word8
+                                return (\t -> KCcode t 0 n)
+                        , do
+                                'm' <- T.get
+                                n <- T.readPrec
+                                return (\t -> KCmouse t 0 n) ]
+                    onrel <- T.choice
+                        [ do
+                            '\'' <- T.get
+                            return True
+                        , do
+                            return False ]
+                    return $ kc onrel
+                    where
+                         readState pre = return pre
 
-fromChar :: Char -> KC
-fromChar = fromKeysym . fromEnum
 
-fromString :: String -> KC
-fromString = fromKeysym . stringToKeysym
+instance Ord KC where
+    KCcode a1 b1 c1 `compare` KCcode a2 b2 c2 = lexic a1 b1 c1 a2 b2 c2
+    KCsym  a1 b1 c1 `compare` KCsym  a2 b2 c2 = lexic a1 b1 c1 a2 b2 c2
+    KCmouse a1 b1 c1 `compare` KCmouse a2 b2 c2 = lexic a1 b1 c1 a2 b2 c2
+    KCcode _ _ _ `compare` _ = GT
+    KCsym _ _ _ `compare` _ = GT
 
-fromKeycode :: Integral a => a -> KC
-fromKeycode = fromIntegral
+lexic :: (Ord a, Ord b, Ord c) => a -> b -> c -> a -> b -> c -> Ordering
+lexic a1 b1 c1 a2 b2 c2 = 
+    compare c1 c2 `mappend` compare b1 b2 `mappend` compare a1 a2
 
-getKeycode :: Num a => KC -> a
-getKeycode kc = fromIntegral (kc .&. 0xff)
+kc_stateList s = [s .&. (1 .<. i) | i <- [0..12], testBit s i]
 
-fromState :: Integral a => a -> KC
-fromState n = (fromIntegral n) .<. 16
+kc_int :: KC -> Int
+kc_int (KCcode _ _ i) = fromEnum i
+kc_int (KCsym _ _ i) = fromEnum i
+kc_int (KCmouse _ _ i) = fromEnum i
 
-normalizeKC :: Display -> KC -> IO KC
-normalizeKC dpy kc = if testBit kc 30 then do
-        ks <- keysymToKeycode dpy (fromIntegral kc .&. 0xffff)
-        return $ 0xbfff0000 .&. kc .|. (fromIntegral ks)
+normalizeKC :: Display -> KC -> IO (Maybe KC)
+normalizeKC dpy (KCsym onRelease state ks) = do
+    kc <- keysymToKeycode dpy ks
+    if kc == 0 then
+        return Nothing
     else
-        return kc
+        return $ Just (KCcode onRelease state kc)
+normalizeKC _ kc = return (Just kc)
 
-getState :: Num a => KC -> a
-getState kc = fromIntegral $ (kc .>. 16) .&. 0x1fff
-
-shift_ :: KC -> KC
-shift_ kc = kc .|. (1 .<. 16)
-
-lock_ :: KC -> KC
-lock_ kc = kc .|. (1 .<. 17)
-
-ctrl_ :: KC -> KC
-ctrl_ kc = kc .|. (1 .<. 18)
-
-mod1_ :: KC -> KC
-mod1_ kc = kc .|. (1 .<. 19)
-
-mod2_ :: KC -> KC
-mod2_ kc = kc .|. (1 .<. 20)
-
-mod3_ :: KC -> KC
-mod3_ kc = kc .|. (1 .<. 21)
-
-mod4_ :: KC -> KC
-mod4_ kc = kc .|. (1 .<. 22)
-
-mod5_ :: KC -> KC
-mod5_ kc = kc .|. (1 .<. 23)
-
-btn1_ :: KC -> KC
-btn1_ kc = kc .|. (1 .<. 24)
-
-btn2_ :: KC -> KC
-btn2_ kc = kc .|. (1 .<. 25)
-
-btn3_ :: KC -> KC
-btn3_ kc = kc .|. (1 .<. 26)
-
-btn4_ :: KC -> KC
-btn4_ kc = kc .|. (1 .<. 27)
-
-btn5_ :: KC -> KC
-btn5_ kc = kc .|. (1 .<. 28)
 
 hkMap :: IORef (M.Map KC (IO ()))
 hkMap = unsafePerformIO $ newIORef M.empty
