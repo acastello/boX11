@@ -1,3 +1,9 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
+module XHotkey.Types.X where
+
+import XHotkey.Types.KM
+
 import qualified Data.Map as M
 
 import Control.Monad.Reader
@@ -30,20 +36,19 @@ data XEnv = XEnv
     , mousePosition :: !(Maybe (Position, Position))
     }
 
--- data XEnv = XEnv
-    -- { 
+data XControl = XControl
+    { hkMap :: M.Map KC (X ())
+    , exitScheduled :: Bool
+    }
 
 -- | X reader monad
--- newtype X a = X (ReaderT XEnv
-type X a = ReaderT XEnv IO a
+newtype X a = X (ReaderT XEnv (StateT XControl IO) a)
+    deriving (Functor, Applicative, Monad, MonadReader XEnv, MonadState XControl, MonadIO)
 
+runX :: (X a) -> XEnv -> XControl -> IO (a, XControl)
+runX (X a) env control = runStateT (runReaderT a env) control
 
 -- | KC stands for Key Combination
--- the 16 first bits represent the keysym or keycode
--- the next 13 bits are the X modifier masks shifted by 16
--- bit 30 indicates whether it's a keycode (0) or a keysym (1)
--- bit 31 indicates whether it's to be triggered by KeyPress (0) or KeyRelease
--- (1)
 data KC = 
         KCcode
     { kc_onrelease  :: Bool
@@ -124,10 +129,10 @@ instance Read KC where
                     T.+++ do
                         return st
                 modMap = foldMap (uncurry zip) $ fmap repeat <$>
-                    [ (["S-", "shift "], shiftMask)
+                    [ (["S-", "Shift-", "shift "], shiftMask)
                     , (["Caps-", "CapsLock "], lockMask)
-                    , (["C-", "ctrl ", "control "], controlMask)
-                    , (["mod1-", "mod1 ", "M-", "meta ", "A-", "alt"], mod1Mask)
+                    , (["C-", "Ctrl-", "ctrl ", "control "], controlMask)
+                    , (["mod1-", "mod1 ", "M-", "meta ", "A-", "Alt-", "alt "], mod1Mask)
                     , (["mod2-", "mod2 ", "Num-", "NumLock "], mod2Mask)
                     , (["mod3-", "mod3 ", "Scroll-", "ScrollLock "], mod3Mask)
                     , (["mod4-", "mod4 ", "Win-", "Win ", "Cmd-", "Cmd ", "Super "], mod4Mask)
@@ -136,18 +141,7 @@ instance Read KC where
                     , (["btn2-", "button2 "], button2Mask)
                     , (["btn3-", "button3 "], button3Mask)
                     , (["btn4-", "button4 "], button4Mask)
-                    , (["btn5-", "button5 "], button5Mask)
-                    ]
-                    -- [ ("S-", shiftMask), ("shift ", shiftMask), ("Caps-", lockMask)
-                    -- , ("CapsLock ", lockMask), ("C-", controlMask), ("ctrl ", controlMask)
-                    -- , ("control ", controlMask), ("mod1-", mod1Mask), ("mod1 ", mod1Mask)
-                    -- , ("M-", mod1Mask) , ("meta ", mod1Mask), ("A-", mod1Mask)
-                    -- , ("alt ", mod1Mask) , ("mod2-", mod2Mask), ("mod2 ", mod2Mask)
-                    -- , ("Num-", mod2Mask), ("NumLock ", mod2Mask), ("mod3-", mod3Mask)
-                    -- , ("mod3 ", mod3Mask), ("Scroll-", mod3Mask), ("ScrollLock", mod3Mask)
-                    -- , ("mod4-", mod4Mask), ("mod4 ", mod4Mask), ("Win-", mod4Mask)
-                    -- , ("Win ", mod4Mask), ("Cmd-", mod4Mask), ("Cmd ", mod4Mask)
-                    -- , ("Super ", mod4Mask), ("mod5-", mod5Mask), ("mod5 ", mod5Mask) ]
+                    , (["btn5-", "button5 "], button5Mask) ]
                 lit = mapM (\c -> T.get >>= \c' -> 
                     if toLower c' == toLower c then return c' else fail "")
 
@@ -162,10 +156,15 @@ lexic :: (Ord a, Ord b, Ord c) => a -> b -> c -> a -> b -> c -> Ordering
 lexic a1 b1 c1 a2 b2 c2 = 
     compare c1 c2 `mappend` compare b1 b2 `mappend` compare a1 a2
 
-kc_setstate :: KC -> Modifier -> KC
-kc_setstate (KCcode u _ k) st = KCcode u st k
-kc_setstate (KCsym u _ c) st = KCsym u st c
-kc_setstate (KCmouse u _ m) st = KCmouse u st m
+kc_state_set :: KC -> Modifier -> KC
+kc_state_set (KCcode u _ k) st = KCcode u st k
+kc_state_set (KCsym u _ c) st = KCsym u st c
+kc_state_set (KCmouse u _ m) st = KCmouse u st m
+
+kc_onrelease_set :: KC -> Bool -> KC
+kc_onrelease_set (KCcode _ st k) u = KCcode u st k
+kc_onrelease_set (KCsym _ st c) u = KCsym u st c
+kc_onrelease_set (KCmouse _ st m) u = KCmouse u st m
 
 kc_stateToList :: Modifier -> [Modifier]
 kc_stateToList s = [s .&. (1 .<. i) | i <- [0..12], testBit s i]
@@ -184,6 +183,3 @@ normalizeKC dpy (KCsym onRelease state ks) = do
         return $ Just (KCcode onRelease state kc)
 normalizeKC _ kc = return (Just kc)
 
-
-hkMap :: IORef (M.Map KC (IO ()))
-hkMap = unsafePerformIO $ newIORef M.empty
