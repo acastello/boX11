@@ -56,9 +56,14 @@ n2 = do
     modify (2*)
     return (length str)
 
--- n3 :: N Bool
--- n3 = get
+data D = D {d1 :: String, d2 :: Integer }
+    deriving Show
 
+s1 :: StateT D IO String
+s1 = do
+    s <- get
+    put $ s {d1 = "dsa"}
+    return (d1 s)
 
 newtype T = T String
     deriving Show

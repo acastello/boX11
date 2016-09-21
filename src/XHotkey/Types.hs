@@ -1,6 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module XHotkey.Types where
+module XHotkey.Types 
+    where
 
 import qualified Data.Map as M
 
@@ -11,12 +12,11 @@ import Graphics.X11
 import Graphics.X11.Xlib.Extras (Event)
 
 import Data.Word
-import Data.IORef
-import GHC.IO (unsafePerformIO)
 import Data.Bits
 import Numeric (showHex)
 import Data.Char (toLower)
 import Data.Maybe (fromMaybe)
+
 import qualified Text.Read as T
 import Text.Read.Lex (numberToInteger)
 
@@ -30,8 +30,7 @@ word .>. shift = shiftR word shift
 data XEnv = XEnv
     { display   :: Display
     , rootWindow   :: !Window
-    , currentEvent :: !(Maybe XEventPtr)
-    , mousePosition :: !(Maybe (Position, Position))
+    , currentEvent :: XEventPtr
     }
 
 data XControl = XControl
@@ -46,7 +45,7 @@ newtype X a = X (ReaderT XEnv (StateT XControl IO) a)
 runX :: (X a) -> XEnv -> XControl -> IO (a, XControl)
 runX (X a) env control = runStateT (runReaderT a env) control
 
-
+-- | Key and Mouse wrapper
 data KM = KM 
     { keyUp :: Bool
     , keyModifiers :: Modifier
