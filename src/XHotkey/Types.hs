@@ -13,7 +13,6 @@ import Graphics.X11.Xlib.Extras (Event)
 
 import Data.Word
 import Data.Bits
-import Numeric (showHex)
 import Data.Char (toLower)
 import Data.Maybe (fromMaybe)
 
@@ -29,7 +28,7 @@ word .>. shift = shiftR word shift
 -- | XEnv
 data XEnv = XEnv
     { display   :: Display
-    , rootWindow   :: !Window
+    , rootWindow'   :: !Window
     , currentEvent :: XEventPtr
     }
 
@@ -45,6 +44,14 @@ newtype X a = X (ReaderT XEnv (StateT XControl IO) a)
 runX :: (X a) -> XEnv -> XControl -> IO (a, XControl)
 runX (X a) env control = runStateT (runReaderT a env) control
 
+runX' :: (X a) -> IO a
+runX' m = do
+    dpy <- openDisplay ""
+    let root = defaultRootWindow dpy
+    (ret, st) <- allocaXEvent $ \e -> runX m (XEnv dpy root e) (XControl M.empty False)
+    closeDisplay dpy
+    return ret
+
 -- | Key and Mouse wrapper
 data KM = KM 
     { keyUp :: Bool
@@ -59,7 +66,7 @@ data KMitem =
     deriving (Eq, Ord)
 
 instance Show KMitem where
-    show (KCode c) = "0x" ++ showHex c ""
+    show (KCode c) = "k" ++ show c 
     show (KSym s) = keysymToString s
     show (MButton b) = "mouse" ++ (show b)
     
@@ -141,5 +148,15 @@ instance Read KM where
 instance Ord KM where
     KM u1 m1 k1 `compare` KM u2 m2 k2 = compare k1 k2 `mappend` compare m1 m2 `mappend` compare u1 u2
 
+modifiersMask :: Modifier
+modifiersMask = sum [1 `shiftL` i | i <- [0..12]]
+
 listModifiers :: Modifier -> [Modifier]
 listModifiers s = [s .&. (1 `shiftL` i) | i <- [0..12], testBit s i]
+
+normalizeKM :: KM -> X KM
+normalizeKM (KM u s (KSym ks)) = do
+    XEnv {display = dpy} <- ask
+    kc <- liftIO $ keysymToKeycode dpy ks
+    return (KM u s (KCode kc))
+normalizeKM km = return km
