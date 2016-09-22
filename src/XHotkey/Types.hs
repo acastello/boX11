@@ -41,17 +41,6 @@ data XControl = XControl
 newtype X a = X (ReaderT XEnv (StateT XControl IO) a)
     deriving (Functor, Applicative, Monad, MonadReader XEnv, MonadState XControl, MonadIO)
 
-runX :: (X a) -> XEnv -> XControl -> IO (a, XControl)
-runX (X a) env control = runStateT (runReaderT a env) control
-
-runX' :: (X a) -> IO a
-runX' m = do
-    dpy <- openDisplay ""
-    let root = defaultRootWindow dpy
-    (ret, st) <- allocaXEvent $ \e -> runX m (XEnv dpy root e) (XControl M.empty False)
-    closeDisplay dpy
-    return ret
-
 -- | Key and Mouse wrapper
 data KM = KM 
     { keyUp :: Bool
@@ -66,10 +55,22 @@ data KMitem =
     deriving (Eq, Ord)
 
 instance Show KMitem where
-    show (KCode c) = "k" ++ show c 
-    show (KSym s) = keysymToString s
+    show (KCode c) = "0x" ++ show c 
+    show (KSym s) = case keysymToString s of
+        [] -> "(keysym: " ++ show s ++ ", no symbol)"
+        s' -> s'
     show (MButton b) = "mouse" ++ (show b)
-    
+
+instance Enum KMitem where
+    fromEnum (KCode c) = (0 `shiftL` 25) .|. (0x1ffffff .&. (fromIntegral c))
+    fromEnum (KSym s) =  (1 `shiftL` 25) .|. (0x1ffffff .&. (fromIntegral s))
+    fromEnum (MButton b) = (2 `shiftL` 25) .|. (0x1ffffff .&. (fromIntegral b))
+    toEnum n
+        | n' == 0   = KCode   $ fromIntegral n''
+        | n' == 1   = KSym $ fromIntegral n''
+        | otherwise = MButton $ fromIntegral n''
+        where n' = n `shiftR` 25 .&. 0x3
+              n'' = n .&. 0x1ffffff
 
 instance Show KM where
     show (KM up mod k) = 
@@ -147,6 +148,10 @@ instance Read KM where
 
 instance Ord KM where
     KM u1 m1 k1 `compare` KM u2 m2 k2 = compare k1 k2 `mappend` compare m1 m2 `mappend` compare u1 u2
+
+instance Enum KM where
+    fromEnum (KM up st k) = ((fromEnum up) `shiftL` 59) .|. ((fromIntegral st) `shiftL` 27) .|. fromEnum k
+    toEnum n = KM (testBit n 59) (fromIntegral $ n `shiftR` 27 .&. 0xfff) (toEnum $ n .&. 0x7ffffff)
 
 modifiersMask :: Modifier
 modifiersMask = sum [1 `shiftL` i | i <- [0..12]]
