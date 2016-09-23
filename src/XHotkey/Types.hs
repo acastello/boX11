@@ -3,7 +3,7 @@
 module XHotkey.Types 
     where
 
-import qualified Data.Map as M
+import MapTree
 
 import Control.Monad.Reader
 import Control.Monad.State
@@ -34,13 +34,19 @@ data XEnv = XEnv
     }
 
 data XControl = XControl
-    { hkMap :: M.Map KM (X ())
+    { hkMap :: Bindings
     , exitScheduled :: Bool
     }
+
+type Bindings = MapTree KM (X ())
+drawBindings :: Bindings -> String
+drawBindings b = drawMapTree $ () <$ b
 
 -- | X reader monad
 newtype X a = X (ReaderT XEnv (StateT XControl IO) a)
     deriving (Functor, Applicative, Monad, MonadReader XEnv, MonadState XControl, MonadIO)
+
+-- instance Show (X
 
 -- | Key and Mouse wrapper
 data KM = KM 
@@ -48,6 +54,8 @@ data KM = KM
     , keyModifiers :: Modifier
     , mainKey :: KMitem }
     deriving (Eq)
+
+nullKM = KM { False, 0, KCode 0 }
 
 data KMitem = 
         KCode KeyCode
@@ -166,3 +174,12 @@ normalizeKM (KM u s (KSym ks)) = do
     kc <- liftIO $ keysymToKeycode dpy ks
     return (KM u s (KCode kc))
 normalizeKM km = return km
+
+binds :: Bindings
+binds = mapKeys read $ fromList
+    [ "C-slash" .< 
+        [ "C-slash" .> (return ())
+        , "M-c\\" .> (return ()) ]
+    , "1" .> (return ())
+    , "A" .< ["a" .< ["a" .> return ()]]]
+    

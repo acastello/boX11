@@ -1,6 +1,8 @@
 module XHotkey.Core where
 
 import XHotkey.Types
+import MapTree
+
 import Graphics.X11
 import Graphics.X11.Xlib.Extras
 
@@ -21,6 +23,11 @@ runX' m = do
     (ret, st) <- allocaXEvent $ \e -> fillBytes e 0 196 >> runX m (XEnv dpy root e 0) (XControl M.empty False)
     closeDisplay dpy
     return ret
+
+-- mainLoop :: (X a)
+-- mainLoop = runX' do
+    -- m <
+    
 
 pointerPos :: X (Position, Position)
 pointerPos = do
