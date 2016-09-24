@@ -10,6 +10,8 @@ import Data.Word
 
 import Control.Monad.State
 import Control.Monad.Reader
+
+import Control.Concurrent
 import Foreign
 import qualified Data.Map as M
 
@@ -20,13 +22,26 @@ runX' :: (X a) -> IO a
 runX' m = do
     dpy <- openDisplay ""
     let root = defaultRootWindow dpy
-    (ret, st) <- allocaXEvent $ \e -> fillBytes e 0 196 >> runX m (XEnv dpy root e 0) (XControl M.empty False)
+    (ret, st) <- allocaXEvent $ \e -> fillBytes e 0 196 >> runX m (XEnv dpy root e 0) (XControl mempty False)
     closeDisplay dpy
     return ret
 
 -- mainLoop :: (X a)
 -- mainLoop = runX' do
     -- m <
+    
+_grabKM :: KM -> X ()
+_grabKM k = do
+    XEnv { display = dpy, rootWindow' = root } <- ask
+    (KM _ st k') <- normalizeKM k
+    case k' of
+        KCode c -> liftIO $ grabKey dpy c st root False grabModeAsync grabModeAsync
+        MButton b -> liftIO $ grabButton dpy b st root False (buttonPressMask .|. buttonReleaseMask) grabModeAsync grabModeAsync root 0
+
+flushX :: X ()
+flushX = do
+    XEnv { display = dpy } <- ask
+    liftIO $flush dpy
     
 
 pointerPos :: X (Position, Position)

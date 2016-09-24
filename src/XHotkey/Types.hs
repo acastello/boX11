@@ -3,7 +3,8 @@
 module XHotkey.Types 
     where
 
-import MapTree
+import qualified MapTree as M
+import MapTree hiding (lookup)
 
 import Control.Monad.Reader
 import Control.Monad.State
@@ -38,15 +39,16 @@ data XControl = XControl
     , exitScheduled :: Bool
     }
 
-type Bindings = MapTree KM (X ())
+type Bindings = M.MapTree KM (X ())
 drawBindings :: Bindings -> String
-drawBindings b = drawMapTree $ () <$ b
+drawBindings = drawMapTree
 
 -- | X reader monad
 newtype X a = X (ReaderT XEnv (StateT XControl IO) a)
     deriving (Functor, Applicative, Monad, MonadReader XEnv, MonadState XControl, MonadIO)
 
--- instance Show (X
+instance Show (X a) where
+    show _ = "X ()"    
 
 -- | Key and Mouse wrapper
 data KM = KM 
@@ -55,7 +57,7 @@ data KM = KM
     , mainKey :: KMitem }
     deriving (Eq)
 
-nullKM = KM { False, 0, KCode 0 }
+nullKM = KM False 0 (KCode 0 )
 
 data KMitem = 
         KCode KeyCode

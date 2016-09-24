@@ -69,6 +69,15 @@ fold :: (a -> b -> b) -> b -> MapTree k a -> b
 fold f b (Leaf a) = f a b
 fold f b (Branch m) = foldr (flip $ fold f) b m
 
+instance Traversable (MapTree k) where
+    traverse f (Leaf a) = Leaf <$> f a    
+    traverse f (Branch m) = Branch <$> (traverse (traverse f) m)
+
+mapKeysM :: (Ord k2, Monad m) => (k1 -> m k2) -> MapTree k1 a -> m (MapTree k2 a)
+mapKeysM f (Leaf a) = return (Leaf a)
+-- mapKeysM f (Branch m) = 
+-- traverseK :: Applicative t => (k1 -> t k2) -> M.Map k1 a -> t (M.Map k2 a)
+traverseK f m = 
 
 fromList :: Ord k => [(k,MapTree k a)] -> MapTree k a
 fromList = Branch . M.fromList
@@ -86,7 +95,6 @@ lookup k (Branch m) = Left <$> M.lookup k m
 (Branch m)!(k:ks) = case m M.! k of
     (Leaf a') -> a'
     b -> b!ks
-    _ -> error "given key is not an element of the treemap or is another treemap itself"
 (Branch m)![] = error "not enough keys"
     
 
