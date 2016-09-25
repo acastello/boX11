@@ -40,6 +40,15 @@ mainLoop = do
             return ()
         else do
             mapM_ _grabKM (L.intersect hk (baseKeys hk'))
+            mapM_ _ungrabKM (hk L.\\ (baseKeys hk'))
+            XEnv { display = dpy, rootWindow' = root, currentEvent = ptr } <- ask
+            liftIO $ nextEvent dpy ptr
+            evt <- liftIO $ get_EventType ptr
+            if evt == buttonPress or evt == keyPress then
+                hk'!(read "c/")
+            else
+                loop hk'
+            
     
 _grabKM :: KM -> X ()
 _grabKM k = do
@@ -48,6 +57,15 @@ _grabKM k = do
     case k' of
         KCode c -> liftIO $ grabKey dpy c st root False grabModeAsync grabModeAsync
         MButton b -> liftIO $ grabButton dpy b st root False (buttonPressMask .|. buttonReleaseMask) grabModeAsync grabModeAsync root 0
+
+_ungrabKM :: KM -> X ()
+_ungrabKM k = do
+    XEnv { display = dpy, rootWindow' = root } <- ask
+    (KM _ st k') <- normalizeKM k
+    case k' of
+        KCode c -> liftIO $ ungrabKey dpy c st root
+        MButton b -> liftIO $ ungrabButton dpy b st root
+    return ()
 
 flushX :: X ()
 flushX = do
