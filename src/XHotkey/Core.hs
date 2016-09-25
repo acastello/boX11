@@ -13,6 +13,7 @@ import Control.Monad.Reader
 
 import Control.Concurrent
 import Foreign
+import qualified Data.List as L
 import qualified Data.Map as M
 
 runX :: (X a) -> XEnv -> XControl -> IO (a, XControl)
@@ -26,9 +27,19 @@ runX' m = do
     closeDisplay dpy
     return ret
 
--- mainLoop :: (X a)
--- mainLoop = runX' do
-    -- m <
+mainLoop :: X ()
+mainLoop = do
+    XControl { hkMap = hk } <- get
+    loop (baseKeys hk)
+    return ()
+    where 
+      loop :: [KM] -> X ()
+      loop hk = do
+        XControl { hkMap = hk', exitScheduled = ext } <- get
+        if ext then
+            return ()
+        else do
+            mapM_ _grabKM (L.intersect hk (baseKeys hk'))
     
 _grabKM :: KM -> X ()
 _grabKM k = do

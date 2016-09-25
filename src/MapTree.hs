@@ -2,16 +2,17 @@ module MapTree where
 
 import qualified Data.Map as M
 import Data.List (intersperse)
+import Data.Tuple (swap)
 
 data MapTree k a =
       Branch (M.Map k (MapTree k a))
     | Leaf a
     deriving Eq
 
-infixr 5 .<
+infixr 0 .<
 k .< xs = (k, Branch $ M.fromList xs)
 
-infixr 5 .>
+infixr 0 .>
 k .> a = (k, Leaf a)
 
 instance (Show a, Show b) => Show (MapTree a b) where
@@ -62,6 +63,14 @@ mapKeys :: Ord k2 => (k1 -> k2) -> MapTree k1 a -> MapTree k2 a
 mapKeys f (Leaf a) = Leaf a
 mapKeys f (Branch m) = Branch $ (mapKeys f) <$> (M.mapKeys f m)
 
+mapWithKey :: (k -> a -> b) -> MapTree k a -> MapTree k b
+mapWithKey _ (Leaf _) = error "can't map without a key"
+mapWithKey f (Branch m) = Branch $ M.mapWithKey (\k mt -> mapWithKey0 f k mt) m
+
+mapWithKey0 :: (k -> a -> b) -> k -> MapTree k a -> MapTree k b
+mapWithKey0 f k (Leaf a) = Leaf (f k a)
+mapWithKey0 f k (Branch m) = Branch $ M.mapWithKey (\k' mt -> mapWithKey0 f k' mt) m
+
 instance Foldable (MapTree k) where
     foldr = fold
 
@@ -73,17 +82,25 @@ instance Traversable (MapTree k) where
     traverse f (Leaf a) = Leaf <$> f a    
     traverse f (Branch m) = Branch <$> (traverse (traverse f) m)
 
+traverseKeys :: (Ord k2, Applicative t) => (k1 -> t k2) -> MapTree k1 a -> t (MapTree k2 a)
+traverseKeys f (Leaf a) = pure (Leaf a)
+traverseKeys f (Branch m) = Branch <$> (traverseK2 f (traverseKeys f) m)
+
 mapKeysM :: (Ord k2, Monad m) => (k1 -> m k2) -> MapTree k1 a -> m (MapTree k2 a)
-mapKeysM f (Leaf a) = return (Leaf a)
--- mapKeysM f (Branch m) = 
--- traverseK :: Applicative t => (k1 -> t k2) -> M.Map k1 a -> t (M.Map k2 a)
-traverseK f m = 
+mapKeysM = traverseKeys
+
+traverseK2 :: (Applicative t, Ord k2) => (k1 -> t k2) -> (a -> t b) -> M.Map k1 a -> t (M.Map k2 b)
+traverseK2 f g = (M.fromList <$>) . (traverse (\(x,y) -> (,) <$> f x <*> g y)) . M.toList
 
 fromList :: Ord k => [(k,MapTree k a)] -> MapTree k a
 fromList = Branch . M.fromList
 
-toList :: MapTree k a -> [a]
-toList = foldr (:) []
+elems :: MapTree k a -> [a]
+elems = foldr (:) []
+
+baseKeys :: MapTree k a -> [k]
+baseKeys (Leaf _) = error "0-depth trees don't have keys"
+baseKeys (Branch m) = M.keys m
 
 lookup :: Ord k => k -> MapTree k a -> Maybe (Either (MapTree k a) a)
 lookup k (Leaf _) = Nothing
@@ -102,9 +119,17 @@ member :: Ord k => k -> MapTree k a -> Bool
 member k (Branch m) = M.member k m
 member _ _ = False
 
+branch :: Ord k => [k] -> a -> MapTree k a
+branch ks a = foldr (\a b -> fromList [(a,b)]) (Leaf a) ks
 
+insert :: Ord k => [k] -> a -> MapTree k a -> MapTree k a
+insert ks a m = (branch ks a) `mappend` m
 
+insert0 :: Ord k => k -> a -> MapTree k a -> MapTree k a 
+insert0 k a m = insert [k] a m
 
+pt :: (Show k, Show a) => MapTree k a -> IO ()
+pt = putStr . drawMapTree
 
 test1 = fromList
     [ 1 .<

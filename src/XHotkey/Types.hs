@@ -177,11 +177,3 @@ normalizeKM (KM u s (KSym ks)) = do
     return (KM u s (KCode kc))
 normalizeKM km = return km
 
-binds :: Bindings
-binds = mapKeys read $ fromList
-    [ "C-slash" .< 
-        [ "C-slash" .> (return ())
-        , "M-c\\" .> (return ()) ]
-    , "1" .> (return ())
-    , "A" .< ["a" .< ["a" .> return ()]]]
-    
