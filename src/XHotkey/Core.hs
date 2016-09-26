@@ -15,6 +15,7 @@ import Control.Concurrent
 import Foreign
 import qualified Data.List as L
 import qualified Data.Map as M
+import Prelude hiding (lookup)
 
 runX :: (X a) -> XEnv -> XControl -> IO (a, XControl)
 runX (X a) env control = runStateT (runReaderT a env) control
@@ -29,8 +30,10 @@ runX' m = do
 
 mainLoop :: X ()
 mainLoop = do
-    XControl { hkMap = hk } <- get
-    loop (baseKeys hk)
+    s@XControl { hkMap = hk } <- get
+    hk2 <- traverseKeys normalizeKM hk
+    put $ s { hkMap = hk2 }
+    loop mempty
     return ()
     where 
       loop :: [KM] -> X ()
@@ -39,15 +42,34 @@ mainLoop = do
         if ext then
             return ()
         else do
-            mapM_ _grabKM (L.intersect hk (baseKeys hk'))
+            mapM_ _grabKM (baseKeys hk' L.\\ hk)
             mapM_ _ungrabKM (hk L.\\ (baseKeys hk'))
             XEnv { display = dpy, rootWindow' = root, currentEvent = ptr } <- ask
             liftIO $ nextEvent dpy ptr
-            evt <- liftIO $ get_EventType ptr
-            if evt == buttonPress or evt == keyPress then
-                hk'!(read "c/")
-            else
-                loop hk'
+            km <- liftIO $ ptrToKM ptr
+            case do
+                km' <- km
+                x <- lookup km' hk'
+                case x of
+                    Left _ -> Nothing
+                    Right x -> return x
+                of
+                Just x -> x
+                Nothing -> return ()
+            loop (baseKeys hk')
+                
+      ptrToKM :: XEventPtr -> IO (Maybe KM)
+      ptrToKM ptr = do
+        evt <- get_EventType ptr
+        let up = any (== evt) [keyRelease, buttonRelease]
+        if any (== evt) [keyPress, keyRelease ] then do
+            (_,_,_,_,_,_,_, st, kc, _) <- get_KeyEvent ptr
+            return $ Just $ KM up st (KCode kc)
+        else if any (== evt) [buttonPress, buttonRelease] then do
+            (_,_,_,_,_,_,_, st, mb, _) <- get_ButtonEvent ptr
+            return $ Just $ KM up st (MButton mb)
+        else
+            return Nothing
             
     
 _grabKM :: KM -> X ()
@@ -72,6 +94,10 @@ flushX = do
     XEnv { display = dpy } <- ask
     liftIO $flush dpy
     
+exitX :: X()
+exitX = do
+    s <- get
+    put $ s {exitScheduled = True}
 
 pointerPos :: X (Position, Position)
 pointerPos = do
@@ -91,3 +117,7 @@ relPointerPos w = do
     liftIO $ do
         (_,_,_,_,_, x, y, _) <- queryPointer dpy w
         return (fromIntegral x, fromIntegral y)
+
+printBindings :: X ()
+printBindings =
+    get >>= liftIO . putStrLn . drawMapTree . hkMap

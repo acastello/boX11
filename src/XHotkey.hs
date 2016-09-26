@@ -11,6 +11,7 @@ import Data.Word
 
 import Control.Monad.State
 
+
 data D = A Int | B Word16 | C Word32
     deriving (Show)
 
@@ -22,3 +23,5 @@ binds = mapKeys read $ fromList
     , "1" .> put $ XControl mempty True 
     , "A" .< ["a" .< ["a" .> return ()]]]
     
+
+test x = runX' $ (modify $ \_-> XControl (fromList [read "k10" .> liftIO $ print 1, read "cQ" .> exitX]) False) >> x

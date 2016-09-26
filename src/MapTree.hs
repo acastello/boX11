@@ -104,7 +104,10 @@ baseKeys (Branch m) = M.keys m
 
 lookup :: Ord k => k -> MapTree k a -> Maybe (Either (MapTree k a) a)
 lookup k (Leaf _) = Nothing
-lookup k (Branch m) = Left <$> M.lookup k m 
+lookup k (Branch m) = case M.lookup k m of
+    Just (Branch m') -> Just (Left $ Branch m')
+    Just (Leaf a) -> Just (Right a)
+    Nothing -> Nothing
 
 (!) :: Ord k => MapTree k a -> [k] -> a
 (Leaf a)![] = a
