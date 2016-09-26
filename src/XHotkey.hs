@@ -17,11 +17,13 @@ data D = A Int | B Word16 | C Word32
 
 binds :: Bindings
 binds = mapKeys read $ fromList
-    [ "C-slash" .< 
-        [ "C-slash" .> liftIO ( putStrLn "C-/")
-        , "M-c\\" .> (return ()) ]
-    , "1" .> put $ XControl mempty True 
-    , "A" .< ["a" .< ["a" .> return ()]]]
+    [ "q" .> exitX
+    , "1" .> liftIO $ print 1
+    , "2" .<
+        [ "1" .> liftIO $ print 12
+        , "2" .> liftIO $ print 22
+        ]
+    ]
     
 
-test x = runX' $ (modify $ \_-> XControl (fromList [read "k10" .> liftIO $ print 1, read "cQ" .> exitX]) False) >> x
+test x = runX' $ (put $ XControl binds False) >> x

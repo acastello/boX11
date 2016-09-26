@@ -51,7 +51,13 @@ mainLoop = do
                 km' <- km
                 x <- lookup km' hk'
                 case x of
-                    Left _ -> Nothing
+                    Left m -> return $ do
+                        liftIO $ do 
+                            grabKeyboard dpy root False grabModeAsync grabModeAsync currentTime
+                            maskEvent dpy (buttonPressMask .|. buttonReleaseMask .|. keyPressMask .|. keyReleaseMask) ptr
+                        grabbedLoop m
+                        liftIO $ ungrabKeyboard dpy currentTime
+                        return ()
                     Right x -> return x
                 of
                 Just x -> x
@@ -64,12 +70,27 @@ mainLoop = do
         let up = any (== evt) [keyRelease, buttonRelease]
         if any (== evt) [keyPress, keyRelease ] then do
             (_,_,_,_,_,_,_, st, kc, _) <- get_KeyEvent ptr
-            return $ Just $ KM up st (KCode kc)
+            return $ Just $ KM up (0x1fff .&. st) (KCode kc)
         else if any (== evt) [buttonPress, buttonRelease] then do
             (_,_,_,_,_,_,_, st, mb, _) <- get_ButtonEvent ptr
-            return $ Just $ KM up st (MButton mb)
+            return $ Just $ KM up (0x1fff .&. st) (MButton mb)
         else
             return Nothing
+      grabbedLoop :: Bindings -> X ()
+      grabbedLoop m = do
+        XEnv { display = dpy, rootWindow' = root, currentEvent = ptr } <- ask
+        liftIO $ nextEvent dpy ptr
+        km <- liftIO $ ptrToKM ptr
+        case do
+            km' <- km
+            x <- lookup km' m
+            case x of
+                Left m' -> return $ grabbedLoop m'
+                Right x -> return x
+            of
+            Just x -> x
+            Nothing -> return ()
+        
             
     
 _grabKM :: KM -> X ()
@@ -88,6 +109,9 @@ _ungrabKM k = do
         KCode c -> liftIO $ ungrabKey dpy c st root
         MButton b -> liftIO $ ungrabButton dpy b st root
     return ()
+
+io :: IO a -> X a
+io = liftIO
 
 flushX :: X ()
 flushX = do
