@@ -5,7 +5,7 @@ module XHotkey
 
 import XHotkey.Types
 import XHotkey.Core
-import MapTree
+import Data.MapTree
 
 import Data.Word
 
@@ -23,7 +23,9 @@ binds = mapKeys read $ fromList
         [ "1" .> liftIO $ print 12
         , "2" .> liftIO $ print 22
         ]
+    , "3" .> forkX printBindings >> return ()
+    , "4" .> spawn "urxvt -h" 
     ]
     
 
-test x = runX' $ (put $ XControl binds False) >> x
+test x = runX' $ setBindings binds >> x

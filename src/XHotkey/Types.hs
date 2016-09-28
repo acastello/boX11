@@ -3,8 +3,8 @@
 module XHotkey.Types 
     where
 
-import qualified MapTree as M
-import MapTree hiding (lookup)
+import qualified Data.MapTree as M
+import Data.MapTree hiding (lookup)
 
 import Control.Monad.Reader
 import Control.Monad.State

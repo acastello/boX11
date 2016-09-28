@@ -1,10 +1,12 @@
 module XHotkey.Core where
 
 import XHotkey.Types
-import MapTree
+import Data.MapTree
 
 import Graphics.X11
 import Graphics.X11.Xlib.Extras
+import System.Posix.Process
+import System.Posix.Types
 
 import Data.Word
 
@@ -110,8 +112,26 @@ _ungrabKM k = do
         MButton b -> liftIO $ ungrabButton dpy b st root
     return ()
 
-io :: IO a -> X a
+io :: MonadIO m => IO a -> m a
 io = liftIO
+
+
+forkX :: X () -> X ThreadId
+forkX x = do
+    xenv <- ask
+    xctrl <- get
+    io $ forkIO $ runX x xenv xctrl >> return ()
+
+forkP :: MonadIO m => IO () -> m ProcessID
+forkP prog = io . forkProcess $ do
+    createSession
+    prog
+
+spawnPID :: MonadIO m => String -> m ProcessID
+spawnPID prog = forkP $ executeFile "/bin/sh" False ["-c", prog] Nothing
+
+spawn :: MonadIO m => String -> m ()
+spawn prog = spawnPID prog >> return ()
 
 flushX :: X ()
 flushX = do
@@ -142,6 +162,17 @@ relPointerPos w = do
         (_,_,_,_,_, x, y, _) <- queryPointer dpy w
         return (fromIntegral x, fromIntegral y)
 
+setBindings :: Bindings -> X ()
+setBindings b = do
+    xc <- get
+    put $ xc { hkMap = b }
+    
+hotkey :: [KM] -> X () -> X ()
+hotkey kms act = do
+    xc@XControl { hkMap = hk, exitScheduled = ext } <- get
+    put xc { hkMap = insert kms act hk }
+
 printBindings :: X ()
 printBindings =
     get >>= liftIO . putStrLn . drawMapTree . hkMap
+
