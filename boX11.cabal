@@ -1,0 +1,16 @@
+name:       boX11
+version:    0.0.6
+synopsis:   A multiboxing system for wine
+category:   Multibox
+license:    LGPL
+author:     Alejandro Castello
+maintainer: a.castello.pas@gmail.com
+cabal-version: >= 1.2
+build-type: Custom
+
+library
+    hs-source-dirs:     src
+    exposed-modules:    BoX11
+    build-depends:      base,
+                        bytestring
+    
