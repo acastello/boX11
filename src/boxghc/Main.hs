@@ -1,16 +1,16 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 import System.Process
 import System.Environment
+import System.Directory
 import System.Posix
+import System.Posix.Temp
 import System.Exit
 
 import Control.Monad (when)
 import Control.Exception
+import Data.List (isPrefixOf)
+import Text.Read (readMaybe)
+import Data.Maybe (fromMaybe)
 
-import qualified Data.ByteString as BS
-
-exportLines :: BS.ByteString
 exportLines = "-- lines added by boxghc, delete these if you can read them after compiling\nforeign export ccall \"box_main\" main :: IO ()"
 
 main = do
@@ -24,7 +24,7 @@ main = do
     sz <- return . fileSize =<< getFileStatus target
     finally 
         (do
-            BS.appendFile target exportLines 
+            appendFile target exportLines 
             let cmd = args ++ ["-dynamic", "-shared", "-threaded", "-fPIC", "-lboX11", rts]
             when (not $ elem "-v0" cmd) $ 
                 putStrLn $ foldr1 (\a b -> a ++ ' ':b) (compiler:cmd)
@@ -33,3 +33,6 @@ main = do
         (do
             setFileSize target sz )
     return ()
+
+getVerbosity xs = v xs
+    where v str = if "-v" `isPrefixOf` str then readMaybe $ drop 2 str else Nothing
