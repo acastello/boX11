@@ -17,4 +17,4 @@ executable boxghc
     hs-source-dirs:     src/boxghc
     main-is:            Main.hs
     extensions:         ForeignFunctionInterface
-    build-depends:      process, unix
+    build-depends:      directory, filepath, process, unix
