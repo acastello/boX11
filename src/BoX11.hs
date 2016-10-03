@@ -10,8 +10,6 @@ import Foreign.Marshal.Array
 import Data.Bits
 import Data.ByteString as BS
 
-import TTree
-
 type HWND = Word64
 
 data KeySym = KeySym 
@@ -99,13 +97,6 @@ getClass hwnd = do
 
 foreign import ccall unsafe "getClass" 
     getClass' :: HWND -> IO CString
-
---------------------------------------------------------------------------------
--- bindTree
---------------------------------------------------------------------------------
-
-bindTree :: TTree KeySym (IO ()) -> IO ()
-bindTree t = return ()
 
 --------------------------------------------------------------------------------
 -- 

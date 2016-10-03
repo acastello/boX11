@@ -15,7 +15,7 @@ main.exe: main.c
 libHSBoX11.so: BoX11.hs
 	ghc -shared -fPIC -dynamic -threaded $^ -o $@
 
-loader.exe: loader.c
+boxlaunch.exe: boxlaunch.c
 	winegcc -ldl -Wl,-rpath=. $^ -o $@
 
 main.so: boX11.c BoX11.hs Main.hs export.hs
