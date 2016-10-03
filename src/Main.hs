@@ -30,8 +30,4 @@ main = do
     putStrLn "getClass:"
     sequence (getClass <$> wins) >>= print
 
-    putStrLn "test: "
-    traverse (forkIO . (\h -> print h >> threadDelay 1000000 >> print h))
-        (wins >>= Prelude.replicate 10)
-
     return ()

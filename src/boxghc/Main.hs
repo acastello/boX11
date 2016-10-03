@@ -26,7 +26,8 @@ main = do
         (do
             BS.appendFile target exportLines 
             let cmd = args ++ ["-dynamic", "-shared", "-threaded", "-fPIC", "-lboX11", rts]
-            when (not $ elem "-v0" cmd) $ putStrLn $ foldr (\a b -> a ++ ' ':b) compiler cmd
+            when (not $ elem "-v0" cmd) $ 
+                putStrLn $ foldr1 (\a b -> a ++ ' ':b) (compiler:cmd)
             waitForProcess =<< runProcess compiler cmd Nothing Nothing Nothing Nothing Nothing
         )
         (do
