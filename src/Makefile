@@ -16,7 +16,7 @@ libHSBoX11.so: BoX11.hs
 	ghc -shared -fPIC -dynamic -threaded $^ -o $@
 
 loader.exe: loader.c
-	winegcc -ldl $^ -o $@
+	winegcc -ldl -Wl,-rpath=. $^ -o $@
 
 main.so: boX11.c BoX11.hs Main.hs export.hs
 	ghc -shared -fPIC -dynamic -threaded export.hs -lboX11 /usr/lib/ghc-8.0.1/rts/libHSrts-ghc8.0.1.so -o $@

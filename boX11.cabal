@@ -1,5 +1,5 @@
 name:       boX11
-version:    0.0.6
+version:    0.1.0
 synopsis:   A multiboxing system for wine
 category:   Multibox
 license:    LGPL
@@ -13,4 +13,8 @@ library
     exposed-modules:    BoX11
     build-depends:      base,
                         bytestring
-    
+executable boxghc
+    hs-source-dirs:     src/boxghc
+    main-is:            Main.hs
+    extensions:         ForeignFunctionInterface
+    build-depends:      process, unix
