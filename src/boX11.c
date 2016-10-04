@@ -142,7 +142,8 @@ int messageBox(char *body, char *title, int flags)
 void sendKey(HWND hwnd, char vk, char ch)
 {
     SendMessage(hwnd, WM_KEYDOWN, vk, 0);
-    SendMessage(hwnd, WM_CHAR, ch, 0);
+    if (ch)
+        SendMessage(hwnd, WM_CHAR, ch, 0);
     SendMessage(hwnd, WM_KEYUP, vk, 0);
 }
 
