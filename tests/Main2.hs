@@ -8,6 +8,7 @@ main = do
     let loop = do
         str <- getLine
         traverse (\w -> sendKey w (fromIntegral $ fromEnum 'Q') (fromIntegral $ fromEnum 'Q')) wins
+        traverse (\w -> sendText w "asd") wins
         when (str /= "q") loop
         return ()
     loop

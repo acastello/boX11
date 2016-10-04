@@ -139,18 +139,36 @@ int messageBox(char *body, char *title, int flags)
 /*******************************************************************************
  *		sendKey
  */
-void sendKey(HWND hwnd, char vk, char ch)
+inline void sendKey(HWND hwnd, char vk, char ch)
 {
-    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
+    if (vk)
+        SendMessage(hwnd, WM_KEYDOWN, vk, 0);
     if (ch)
         SendMessage(hwnd, WM_CHAR, ch, 0);
-    SendMessage(hwnd, WM_KEYUP, vk, 0);
+    if (vk)
+        SendMessage(hwnd, WM_KEYUP, vk, 0);
+}
+
+/*******************************************************************************
+ *		sendChar
+ */
+inline void sendChar(HWND hwnd, char ch)
+{
+    SendMessage(hwnd, WM_CHAR, ch, 0);
+}
+
+/*******************************************************************************
+  *		sendText
+  */
+inline void sendText(HWND hwnd, char *txt)
+{
+    SendMessage(hwnd, WM_SETTEXT, NULL, txt);
 }
 
 /*******************************************************************************
  *		getName
  */
-char *getName(HWND hwnd)
+inline char *getName(HWND hwnd)
 {
     static char ret[1024];
     GetWindowText(hwnd, ret, sizeof(ret));

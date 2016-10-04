@@ -77,6 +77,16 @@ foreign import ccall safe "sendKey"
     sendKey :: HWND -> Word8 -> Word8 -> IO ()
 
 --------------------------------------------------------------------------------
+-- sendText
+--------------------------------------------------------------------------------
+
+sendText :: HWND -> ByteString -> IO ()
+sendText hwnd txt = useAsCString txt $ sendText' hwnd 
+
+foreign import ccall safe "sendText"
+    sendText' :: HWND -> CString -> IO ()
+
+--------------------------------------------------------------------------------
 -- getName
 --------------------------------------------------------------------------------
 

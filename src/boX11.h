@@ -21,6 +21,10 @@ int messageBox(char *body, char *title, int flags);
 
 void sendKey(HWND hwnd, char vk, char ch);
 
+void sendChar(HWND hwnd, char ch);
+
+void sendText(HWND hwnd, char *txt);
+
 char *getName(HWND hwnd);
 
 char *getClass(HWND hwnd);

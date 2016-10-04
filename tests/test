@@ -5,8 +5,10 @@ cd `dirname $0`
 [[ $# > 0 ]] && target="$1" || target=1 
 
 main=Main$target
+src=$main.hs
+so=$main.so
 
 export PATH=$PATH:$HOME/.cabal/bin
 
-boxghc $main.hs -o $main.so
-boxlaunch.exe $main.so
+[[ `stat $src -c %Y` > `stat $so -c %Y` ]] &&  boxghc $main.hs -o $main.so
+exec boxlaunch.exe $main.so
