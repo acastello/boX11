@@ -139,20 +139,16 @@ int messageBox(char *body, char *title, int flags)
 /*******************************************************************************
  *		sendKey
  */
-inline void sendKey(HWND hwnd, char vk, char ch)
+inline void sendKey(char vk, HWND hwnd)
 {
-    if (vk)
-        SendMessage(hwnd, WM_KEYDOWN, vk, 0);
-    if (ch)
-        SendMessage(hwnd, WM_CHAR, ch, 0);
-    if (vk)
-        SendMessage(hwnd, WM_KEYUP, vk, 0);
+    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
+    SendMessage(hwnd, WM_KEYUP, vk, 0);
 }
 
 /*******************************************************************************
  *		sendChar
  */
-inline void sendChar(HWND hwnd, char ch)
+inline void sendChar(char ch, HWND hwnd)
 {
     SendMessage(hwnd, WM_CHAR, ch, 0);
 }
@@ -160,7 +156,7 @@ inline void sendChar(HWND hwnd, char ch)
 /*******************************************************************************
   *		sendText
   */
-inline void sendText(HWND hwnd, char *txt)
+inline void setText(char *txt, HWND hwnd)
 {
     SendMessage(hwnd, WM_SETTEXT, NULL, txt);
 }

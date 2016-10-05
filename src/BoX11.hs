@@ -74,17 +74,24 @@ foreign import ccall safe "messageBox"
 --------------------------------------------------------------------------------
 
 foreign import ccall safe "sendKey" 
-    sendKey :: HWND -> Word8 -> Word8 -> IO ()
+    sendKey :: Word8 -> HWND -> IO ()
+
+--------------------------------------------------------------------------------
+-- sendChar
+--------------------------------------------------------------------------------
+
+foreign import ccall safe "sendChar" 
+    sendChar :: Word8 -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendText
 --------------------------------------------------------------------------------
 
-sendText :: HWND -> ByteString -> IO ()
-sendText hwnd txt = useAsCString txt $ sendText' hwnd 
+setText :: ByteString -> HWND -> IO ()
+setText txt hwnd = useAsCString txt $ flip sendText' hwnd 
 
 foreign import ccall safe "sendText"
-    sendText' :: HWND -> CString -> IO ()
+    sendText' :: CString -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- getName

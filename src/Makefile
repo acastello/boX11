@@ -1,4 +1,4 @@
-ALL= libboX11.so main.exe libHSBoX11.so loader.exe main.so mainw.exe
+ALL= libboX11.so main.exe libHSBoX11.so boxlaunch.exe mainw.exe
 
 all: $(ALL)
 
@@ -18,8 +18,8 @@ libHSBoX11.so: BoX11.hs
 boxlaunch.exe: boxlaunch.c
 	winegcc -ldl -Wl,-rpath=. $^ -o $@
 
-main.so: boX11.c BoX11.hs Main.hs export.hs
-	ghc -shared -fPIC -dynamic -threaded export.hs -lboX11 /usr/lib/ghc-8.0.1/rts/libHSrts-ghc8.0.1.so -o $@
+# main.so: boX11.c BoX11.hs Main.hs export.hs
+	# ghc -shared -fPIC -dynamic -threaded export.hs -lboX11 /usr/lib/ghc-8.0.1/rts/libHSrts-ghc8.0.1.so -o $@
 
 mainw.exe: mainw.c boX11.c boX11.h
 	winegcc mainw.c -o mainw.exe -lboX11

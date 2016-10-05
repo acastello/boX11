@@ -19,11 +19,11 @@ HWND *getWinsBy(int (*filter_fun)(HWND));
 
 int messageBox(char *body, char *title, int flags);
 
-void sendKey(HWND hwnd, char vk, char ch);
+void sendKey(char vk, HWND hwnd);
 
-void sendChar(HWND hwnd, char ch);
+void sendChar(char ch, HWND hwnd);
 
-void sendText(HWND hwnd, char *txt);
+void setText(char *txt, HWND hwnd);
 
 char *getName(HWND hwnd);
 
