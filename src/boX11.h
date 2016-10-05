@@ -21,6 +21,8 @@ int messageBox(char *body, char *title, int flags);
 
 void sendKey(char vk, HWND hwnd);
 
+void sendKeyDown(char vk, HWND hwnd);
+
 void sendChar(char ch, HWND hwnd);
 
 void setText(char *txt, HWND hwnd);

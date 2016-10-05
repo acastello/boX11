@@ -154,11 +154,11 @@ inline void sendChar(char ch, HWND hwnd)
 }
 
 /*******************************************************************************
-  *		sendText
+  *		setText
   */
 inline void setText(char *txt, HWND hwnd)
 {
-    SendMessage(hwnd, WM_SETTEXT, NULL, txt);
+    SendMessage(hwnd, WM_SETTEXT, 0, (ssize_t) txt);
 }
 
 /*******************************************************************************

@@ -10,7 +10,8 @@ build-type: Custom
 
 library
     hs-source-dirs:     src
-    exposed-modules:    BoX11
+    exposed-modules:    BoX11,
+                        BoX11.Basic
     build-depends:      base,
                         bytestring
 executable boxghc
