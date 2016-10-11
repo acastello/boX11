@@ -20,7 +20,7 @@ typedef struct {
 
 BOOL CALLBACK _getwins_cb(HWND, LPARAM);
 
-HWND *getWins(char *filter, int flags)
+HWND *getWins(int flags, char *filter)
 { 
     static getwins_t ret;
 
@@ -142,6 +142,22 @@ int messageBox(char *body, char *title, int flags)
 inline void sendKey(char vk, HWND hwnd)
 {
     SendMessage(hwnd, WM_KEYDOWN, vk, 0);
+    SendMessage(hwnd, WM_KEYUP, vk, 0);
+}
+
+/*
+ *		sendKeyDown
+ */
+inline void sendKeyDown(char vk, HWND hwnd)
+{
+    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
+}
+
+/*
+ * 		sendKeyUp
+ */
+inline void sendKeyUp(char vk, HWND hwnd)
+{
     SendMessage(hwnd, WM_KEYUP, vk, 0);
 }
 

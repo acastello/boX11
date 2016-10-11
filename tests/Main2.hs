@@ -3,12 +3,12 @@ import BoX11
 import Control.Monad
 
 main = do
-    wins <- getWins "GxWindowClassD3d\\|Notepad" 3
+    wins <- getWins byClassEx "GxWindowClassD3d\\|GxWindowClassOpenGl\\|Notepad"
     print wins
     let loop = do
         str <- getLine
-        traverse (\w -> sendKey w (fromIntegral $ fromEnum 'Q') (fromIntegral $ fromEnum 'Q')) wins
-        traverse (\w -> sendText w "asd") wins
+        traverse (sendKey (fromIntegral $ fromEnum 'Q')) wins
+        traverse (sendChar (fromIntegral $ fromEnum 'Q')) wins
         when (str /= "q") loop
         return ()
     loop

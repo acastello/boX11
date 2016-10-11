@@ -4,7 +4,7 @@ import BoX11
 
 main = do
     putStrLn "getWins:"
-    wins <- getWins ".*" 3
+    wins <- getWins byClassEx ".*"
     print wins
 
     putStrLn "getName:"
@@ -12,3 +12,6 @@ main = do
 
     putStrLn "getClass:"
     print =<< traverse getClass wins
+
+    putStrLn "getCursorPos:"
+    print =<< getCursorPos

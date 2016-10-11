@@ -12,18 +12,22 @@ import Data.ByteString as BS
 
 type HWND = Word64
 
-data KeySym = KeySym 
+type Flags = CInt
+byName =    0 :: CInt
+byClass =   1 :: CInt
+byNameEx =  2 :: CInt
+byClassEx = 3 :: CInt
 
 --------------------------------------------------------------------------------
 -- getWins  
 --------------------------------------------------------------------------------
 
-getWins :: ByteString -> CInt -> IO [Word64]
-getWins bs flags = do
-    ptr <- useAsCString bs (\p -> getWins' p flags)
+getWins :: Flags -> ByteString -> IO [Word64]
+getWins flags bs = do
+    ptr <- useAsCString bs (getWins' flags)
     peekArray0 0 ptr
 
-foreign import ccall unsafe "getWins" getWins' :: CString -> CInt -> IO (Ptr Word64)
+foreign import ccall unsafe "getWins" getWins' :: Flags -> CString -> IO (Ptr Word64)
 
 --------------------------------------------------------------------------------
 -- getWinsBy  
@@ -51,7 +55,7 @@ foreign import ccall safe "getWinsBy"
 getCursorPos :: IO (Word, Word)
 getCursorPos = do
     pos <- getCursorPos'
-    return (fromIntegral $ pos .&. 0xff, fromIntegral $ shiftR pos 32)
+    return (fromIntegral $ pos .&. 0xffffffff, fromIntegral $ shiftR pos 32)
 
 foreign import ccall unsafe "getCursorPos"
     getCursorPos' :: IO Word64
@@ -75,6 +79,20 @@ foreign import ccall safe "messageBox"
 
 foreign import ccall safe "sendKey" 
     sendKey :: Word8 -> HWND -> IO ()
+
+--------------------------------------------------------------------------------
+-- sendKeyDown
+--------------------------------------------------------------------------------
+
+foreign import ccall safe "sendKeyDown"
+    sendKeyDown :: Word8 -> HWND -> IO ()
+
+--------------------------------------------------------------------------------
+-- sendKeyUp
+--------------------------------------------------------------------------------
+
+foreign import ccall safe "sendKeyUp"
+    sendKeyUp :: Word8 -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendChar

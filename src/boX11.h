@@ -9,19 +9,21 @@
 #define BOX_CMP     0
 #define BOX_REGEX   2
 
-HWND *getWins(char *filter, int flags);
+HWND *getWins(int flags, char *filter);
 #define getWinsByClass(filter) getWins(filter, BOX_BYCLASS)
 #define getWinsByClassEx(filter) getWins(filter, BOX_BYCLASS | BOX_REGEX)
 #define getWinsByName(filter) getWins(filter, BOX_BYNAME)
 #define getWinsByNameEx(filter) getWins(filter, BOX_BYNAME | BOX_REGEX)
 
-HWND *getWinsBy(int (*filter_fun)(HWND));
+HWND *getWinsBy(int (*filter_func)(HWND));
 
 int messageBox(char *body, char *title, int flags);
 
 void sendKey(char vk, HWND hwnd);
 
 void sendKeyDown(char vk, HWND hwnd);
+
+void sendKeyUp(char vk, HWND hwnd);
 
 void sendChar(char ch, HWND hwnd);
 
