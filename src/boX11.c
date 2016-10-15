@@ -161,6 +161,38 @@ inline void sendKeyUp(char vk, HWND hwnd)
     SendMessage(hwnd, WM_KEYUP, vk, 0);
 }
 
+/*
+ *      sendClick
+ */
+inline void sendClick(int k, HWND hwnd)
+{
+    SendMessage(hwnd, WM_LBUTTONDOWN, k, 0);
+    SendMessage(hwnd, WM_LBUTTONUP, k, 0);
+}
+
+/*
+ *      moveMouse
+ */
+inline void moveMouse(double xp, double yp, HWND hwnd)
+{
+    RECT clir;
+    POINT p;
+
+    GetClientRect(hwnd, &clir);
+    p.x = xp*clir.right;
+    p.y = yp*clir.bottom;
+    ClientToScreen(hwnd, &p);
+    SetCursorPos(p.x, p.y);
+}
+
+/*
+ *      clickProp
+ */
+inline void clickProp(int k, double xp, double yp, HWND hwnd)
+{
+    moveMouse(xp, yp, hwnd);
+}
+
 /*******************************************************************************
  *		sendChar
  */

@@ -3,3 +3,4 @@
 module BoX11
     ( module BoX11.Basic ) where
 import BoX11.Basic
+import BoX11.X
