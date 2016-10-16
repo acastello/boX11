@@ -186,6 +186,10 @@ inline void moveMouse(double xp, double yp, HWND hwnd)
 }
 
 /*
+ *      moveMouseAbs
+ */
+
+/*
  *      clickProp
  */
 inline void clickProp(int k, double xp, double yp, HWND hwnd)
