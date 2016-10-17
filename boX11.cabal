@@ -12,8 +12,10 @@ library
     hs-source-dirs:     src
     exposed-modules:    BoX11,
                         BoX11.Basic
+                        BoX11.X
     build-depends:      base,
-                        bytestring
+                        bytestring,
+                        XHotkey
 executable boxghc
     hs-source-dirs:     src/boxghc
     main-is:            Main.hs

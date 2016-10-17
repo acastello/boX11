@@ -16,6 +16,3 @@ getWinsBy = liftIO . B.getWinsBy
 getCursorPos :: X (Word, Word)
 getCursorPos = liftIO B.getCursorPos
 
-cursorProp :: X (Double, Double)
-cursorProp
-
