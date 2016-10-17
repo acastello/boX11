@@ -25,6 +25,8 @@ void sendKeyDown(char vk, HWND hwnd);
 
 void sendKeyUp(char vk, HWND hwnd);
 
+void sendClick(int k, HWND hwnd);
+
 void moveMouse(double xprop, double yprop, HWND target);
 
 void clickProp(int key, double xprop, double yprop, HWND target);

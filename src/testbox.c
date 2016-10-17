@@ -4,5 +4,5 @@
 int main(void)
 {
     HWND hwnd = (void *) 196682;
-    clickProp(0,0.5,0.5,hwnd);
+    sendClick(4, hwnd);
 }

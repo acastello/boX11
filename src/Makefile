@@ -1,4 +1,4 @@
-ALL= libboX11.so main.exe boxlaunch.exe mainw.exe
+ALL= libboX11.so main.exe boxlaunch.exe mainw.exe testbox.exe
 
 all: $(ALL)
 
@@ -9,7 +9,7 @@ libboX11.dll.so: boX11.c boX11.h
 libboX11.so: libboX11.dll.so
 	cp libboX11.dll.so libboX11.so
 	
-main.exe: main.c
+main.exe: main.c libboX11.dll.so
 	winegcc $^ ./libboX11.dll.so -o $@
 
 # libHSBoX11.so: BoX11.hs

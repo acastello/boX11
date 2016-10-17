@@ -166,8 +166,30 @@ inline void sendKeyUp(char vk, HWND hwnd)
  */
 inline void sendClick(int k, HWND hwnd)
 {
-    SendMessage(hwnd, WM_LBUTTONDOWN, k, 0);
-    SendMessage(hwnd, WM_LBUTTONUP, k, 0);
+    switch (k) {
+        case 1:
+            SendMessage(hwnd, WM_LBUTTONDOWN, 0, 0);
+            SendMessage(hwnd, WM_LBUTTONUP, 0, 0);
+            break;
+        case 2:
+            SendMessage(hwnd, WM_MBUTTONDOWN, 0, 0);
+            SendMessage(hwnd, WM_MBUTTONUP, 0, 0);
+            break;
+        case 3:
+            SendMessage(hwnd, WM_RBUTTONDOWN, 0, 0);
+            SendMessage(hwnd, WM_RBUTTONUP, 0, 0);
+            break;
+        case 4:
+            SendMessage(hwnd, WM_XBUTTONDOWN, 1<<16, 0);
+            SendMessage(hwnd, WM_XBUTTONUP,   1<<16, 0);
+            break;
+        case 5:
+            SendMessage(hwnd, WM_XBUTTONDOWN, 2<<16, 0);
+            SendMessage(hwnd, WM_XBUTTONUP,   2<<16, 0);
+            break;
+        default:
+            break;
+    }
 }
 
 /*
@@ -195,6 +217,7 @@ inline void moveMouse(double xp, double yp, HWND hwnd)
 inline void clickProp(int k, double xp, double yp, HWND hwnd)
 {
     moveMouse(xp, yp, hwnd);
+    sendClick(k, hwnd);
 }
 
 /*******************************************************************************
