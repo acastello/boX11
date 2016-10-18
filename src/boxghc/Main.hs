@@ -29,7 +29,7 @@ main = do
         (do
             copyFile target target'
             appendFile target' exportLines 
-            let cmd = (target' : tail args) ++ ["-dynamic", "-shared", "-threaded", "-fPIC", "-lboX11", "-outputdir", tmpdir, rts]
+            let cmd = (target' : tail args) ++ ["-dynamic", "-shared", "-threaded", "-fPIC", "-lboX11", "-XOverloadedStrings", "-outputdir", tmpdir, rts]
             when (verb > 0) $ 
                 putStrLn $ foldr1 (\a b -> a ++ ' ':b) (compiler:cmd)
                 

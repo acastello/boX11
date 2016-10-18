@@ -4,6 +4,11 @@ cd `dirname $0`
 
 [[ $# > 0 ]] && target="$1" || target=1 
 
+if [[ "$1" -eq "rm" ]]; then
+    rm *.{hi,o,so}
+    exit
+fi
+
 main=Main$target
 src=$main.hs
 so=$main.so
@@ -11,4 +16,7 @@ so=$main.so
 export PATH=$PATH:$HOME/.cabal/bin
 
 [[ `stat $src -c %Y` > `stat $so -c %Y` ]] &&  boxghc $main.hs -o $main.so
-exec boxlaunch.exe $main.so
+
+if [ -f "$main.so" ]; then
+    exec boxlaunch.exe $main.so
+fi

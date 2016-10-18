@@ -12,6 +12,8 @@ import Data.ByteString as BS
 
 type HWND = Word64
 
+type VK = Word8
+
 type Flags = CInt
 byName =    0 :: CInt
 byClass =   1 :: CInt
@@ -78,35 +80,35 @@ foreign import ccall safe "messageBox"
 --------------------------------------------------------------------------------
 
 foreign import ccall safe "sendKey" 
-    sendKey :: Word8 -> HWND -> IO ()
+    sendKey :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendKeyDown
 --------------------------------------------------------------------------------
 
 foreign import ccall safe "sendKeyDown"
-    sendKeyDown :: Word8 -> HWND -> IO ()
+    sendKeyDown :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendKeyUp
 --------------------------------------------------------------------------------
 
 foreign import ccall safe "sendKeyUp"
-    sendKeyUp :: Word8 -> HWND -> IO ()
+    sendKeyUp :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendChar
 --------------------------------------------------------------------------------
 
 foreign import ccall safe "sendChar" 
-    sendChar :: Word8 -> HWND -> IO ()
+    sendChar :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendClick
 --------------------------------------------------------------------------------
 
 foreign import ccall safe "sendClick"
-    sendClick :: Word32 -> HWND -> IO ()
+    sendClick :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- moveMouse 
@@ -123,14 +125,14 @@ foreign import ccall unsafe "clickProp"
     clickProp :: Word32 -> Double -> Double -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
--- sendText
+-- setText
 --------------------------------------------------------------------------------
 
 setText :: ByteString -> HWND -> IO ()
-setText txt hwnd = useAsCString txt $ flip sendText' hwnd 
+setText txt hwnd = useAsCString txt $ flip setText' hwnd 
 
-foreign import ccall safe "sendText"
-    sendText' :: CString -> HWND -> IO ()
+foreign import ccall safe "setText"
+    setText' :: CString -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- getName

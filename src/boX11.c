@@ -217,8 +217,9 @@ inline void moveMouse(double xp, double yp, HWND hwnd)
 inline void clickProp(int k, double xp, double yp, HWND hwnd)
 {
     moveMouse(xp, yp, hwnd);
-    Sleep(70);
+    Sleep(50);
     sendClick(k, hwnd);
+    Sleep(20);
 }
 
 /*******************************************************************************
