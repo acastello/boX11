@@ -1,3 +1,4 @@
+{-# LANGUAGE DoAndIfThenElse #-}
 module BoX11.X
     -- reexports
     ( Flags, byName, byClass, byNameEx, byClassEx, HWND

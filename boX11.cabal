@@ -14,8 +14,11 @@ library
                         BoX11.Basic
                         BoX11.X
     build-depends:      base,
+                        transformers,
+                        mtl,
                         bytestring,
-                        XHotkey
+                        XHotkey,
+                        X11
 executable boxghc
     hs-source-dirs:     src/boxghc
     main-is:            Main.hs
