@@ -1,7 +1,7 @@
 module BoX11.X
     -- reexports
-    ( Flags, byName, byClass, byNameEx, byClassEx, HWND
-    ,getWins, getWinsBy, getCursorPos, clickWins, portKM)
+    ( module BoX11.Basic.Types
+    ,getWins, getWinsBy, getCursorPos, broadcast, clickWins, portKM)
     where
 
 import XHotkey
@@ -28,14 +28,15 @@ getWinsBy = liftIO . B.getWinsBy
 getCursorPos :: X (Word, Word)
 getCursorPos = liftIO B.getCursorPos
 
-broadcast :: Traversable t => KM -> t HWND -> X ()
-broadcast k ws = do
-    vk <- portKM k
-    if vk <= 6 then
-        clickWins (fromIntegral $ if vk > 4 then vk -1 else vk) ws
+-- withKM :: KM -> ([VK] -> VK -> X a) -> X (X a)
+
+broadcast :: Traversable t => KM -> X (t HWND -> X ())
+broadcast k = do
+    (mods,vk) <- portKM k
+    if vk <= 7 then
+        return $ \ws -> clickWins (fromIntegral $ if vk > 4 then vk -1 else vk) ws
     else
-        pressWins vk ws
-    return ()
+        return $ \ws -> pressWins vk ws
     
 pressWins :: Traversable t => VK -> t HWND -> X ()
 pressWins k ws = traverse_ (liftIO . B.sendKey k) ws
@@ -85,16 +86,21 @@ modsToVK m = mconcat
     , if testBit m 6 then [vk_WIN] else []
     ]
     
-portKM :: KM -> X VK
+portKM :: KM -> X ([VK], VK)
 portKM (KM u st (KSym ks)) = do
     XEnv { display = dpy } <- ask
-    ks' <- io $ flip (keycodeToKeysym dpy) 0 =<< keysymToKeycode dpy ks
-    return (fromIntegral ks')
+    kc <- io $ keysymToKeycode dpy ks
+    return (modsToVK st, vkMap!kc)
 portKM (KM u st (KCode kc)) = do
     XEnv { display = dpy } <- ask
-    ks' <- io $ keycodeToKeysym dpy kc 0
-    return (fromIntegral ks')
-portKM (KM u st (MButton b)) = return (fromIntegral b)
+    return (modsToVK st, vkMap!kc)
+portKM (KM u st (MButton b)) =
+    return (modsToVK st, port' b)
+    where 
+        port' b 
+            | b <= 3 = fromIntegral b
+            | b <= 5 = fromIntegral (b+2)
+            | otherwise = fromIntegral (b-2)
 
 -- sendKey :: Foldable t => KM -> t HWND -> X ()
 -- sendKey k ws = do

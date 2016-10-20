@@ -187,6 +187,12 @@ inline void sendClick(int k, HWND hwnd)
             SendMessage(hwnd, WM_XBUTTONDOWN, 2<<16, 0);
             SendMessage(hwnd, WM_XBUTTONUP,   2<<16, 0);
             break;
+        case 6:
+            SendMessage(hwnd, WM_MOUSEWHEEL, 1<<16, 0);
+            break;
+        case 7:
+            SendMessage(hwnd, WM_MOUSEWHEEL, (-1)<<16, 0);
+            break;
         default:
             break;
     }
