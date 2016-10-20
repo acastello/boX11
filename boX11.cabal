@@ -12,13 +12,16 @@ library
     hs-source-dirs:     src
     exposed-modules:    BoX11,
                         BoX11.Basic
+                        BoX11.Basic.Types
                         BoX11.X
     build-depends:      base,
                         transformers,
                         mtl,
+                        array,
                         bytestring,
                         XHotkey,
                         X11
+    extensions:         DoAndIfThenElse
 executable boxghc
     hs-source-dirs:     src/boxghc
     main-is:            Main.hs

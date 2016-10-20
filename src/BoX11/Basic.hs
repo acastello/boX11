@@ -1,6 +1,13 @@
 {-# LANGUAGE OverloadedStrings, ForeignFunctionInterface #-}
 
-module BoX11.Basic where
+module BoX11.Basic 
+    ( module BoX11.Basic.Types 
+    , getWins, getWinsBy, getCursorPos, messageBox, sendKey, sendKeyDown
+    , sendKeyUp, sendChar, sendClick, moveMouse, clickProp, setText, getName
+    , getClass, withModifiers
+    ) where
+
+import BoX11.Basic.Types
 
 import Foreign
 import Foreign.C
@@ -9,16 +16,6 @@ import Foreign.Marshal.Array
 
 import Data.Bits
 import Data.ByteString as BS
-
-type HWND = Word64
-
-type VK = Word8
-
-type Flags = CInt
-byName =    0 :: CInt
-byClass =   1 :: CInt
-byNameEx =  2 :: CInt
-byClassEx = 3 :: CInt
 
 --------------------------------------------------------------------------------
 -- getWins  
@@ -157,9 +154,19 @@ foreign import ccall unsafe "getClass"
     getClass' :: HWND -> IO CString
 
 --------------------------------------------------------------------------------
--- 
+-- withModifiers
 --------------------------------------------------------------------------------
 
+withModifiers :: [VK] -> HWND -> IO a -> IO a
+withModifiers mods window act = do
+    traverse (flip sendKeyDown window) mods
+    ret <- act
+    traverse (flip sendKeyUp window) mods
+    return ret
+    
+--------------------------------------------------------------------------------
+-- 
+--------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
 -- test
