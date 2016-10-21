@@ -3,8 +3,8 @@
 module BoX11.Basic 
     ( module BoX11.Basic.Types 
     , getWins, getWinsBy, getCursorPos, messageBox, sendKey, sendKeyDown
-    , sendKeyUp, sendChar, sendClick, moveMouse, clickProp, setText, getName
-    , getClass, withModifiers
+    , sendKeyUp, sendChar, sendKeyChar, sendClick, moveMouse, clickProp, setText, getName
+    , getClass, withMods
     ) where
 
 import BoX11.Basic.Types
@@ -98,7 +98,14 @@ foreign import ccall safe "sendKeyUp"
 --------------------------------------------------------------------------------
 
 foreign import ccall safe "sendChar" 
-    sendChar :: VK -> HWND -> IO ()
+    sendChar :: Char -> HWND -> IO ()
+
+--------------------------------------------------------------------------------
+-- sendKeyChar
+--------------------------------------------------------------------------------
+
+foreign import ccall safe "sendKeyChar"
+    sendKeyChar :: VK -> Char -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendClick
@@ -157,8 +164,8 @@ foreign import ccall unsafe "getClass"
 -- withModifiers
 --------------------------------------------------------------------------------
 
-withModifiers :: [VK] -> HWND -> IO a -> IO a
-withModifiers mods window act = do
+withMods :: [VK] -> HWND -> IO a -> IO a
+withMods mods window act = do
     traverse (flip sendKeyDown window) mods
     ret <- act
     traverse (flip sendKeyUp window) mods

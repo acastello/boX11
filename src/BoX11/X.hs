@@ -1,7 +1,8 @@
 module BoX11.X
     -- reexports
     ( module BoX11.Basic.Types
-    ,getWins, getWinsBy, getCursorPos, broadcast, clickWins, portKM)
+    , sendChar
+    ,getWins, getWinsBy, getCursorPos, broadcast, sendKeyDown, sendKeyUp, sendKeyChar, clickWins, portKM)
     where
 
 import XHotkey
@@ -37,6 +38,37 @@ broadcast k = do
         return $ \ws -> clickWins (fromIntegral $ if vk > 4 then vk -1 else vk) ws
     else
         return $ \ws -> pressWins vk ws
+
+sendKeyDown :: HWND -> X ()
+sendKeyDown w = do
+    km <- askKM
+    (mods, vk) <- portKM km
+    when (not$ keyUp km) $ io $ B.withMods mods w (B.sendKeyDown vk w)
+    return ()
+    
+sendKeyUp :: HWND -> X ()
+sendKeyUp w = do
+    km <- askKM
+    (mods, vk) <- portKM km
+    when (keyUp km) $ io $ B.withMods mods w (B.sendKeyUp vk w)
+    return ()
+    
+sendChar :: HWND -> X ()
+sendChar w = do
+    XEnv { currentEvent = ev } <- ask
+    (_, c:_) <- io $ lookupString (asKeyEvent ev)
+    io $ B.sendChar c w
+
+sendKeyChar :: HWND -> X ()
+sendKeyChar w = do
+    XEnv { currentEvent = ev } <- ask
+    let kev = asKeyEvent ev
+    (mods, vk) <- portKM =<< askKM
+    (_, c:_) <- io $ lookupString kev
+    io $ traverse (flip B.sendKeyDown w) mods
+    io $ B.sendKeyChar vk c w
+    io $ traverse (flip B.sendKeyUp w) mods
+    return ()
     
 pressWins :: Traversable t => VK -> t HWND -> X ()
 pressWins k ws = traverse_ (liftIO . B.sendKey k) ws

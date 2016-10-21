@@ -161,6 +161,24 @@ inline void sendKeyUp(char vk, HWND hwnd)
     SendMessage(hwnd, WM_KEYUP, vk, 0);
 }
 
+/*******************************************************************************
+ *		sendChar
+ */
+inline void sendChar(char ch, HWND hwnd)
+{
+    SendMessage(hwnd, WM_CHAR, ch, 0);
+}
+
+/*
+ *      sendKeyChar
+ */
+inline void sendKeyChar(char vk, char ch, HWND hwnd)
+{
+    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
+    SendMessage(hwnd, WM_CHAR, ch, 0);
+    SendMessage(hwnd, WM_KEYUP, vk, 0);
+}
+
 /*
  *      sendClick
  */
@@ -226,14 +244,6 @@ inline void clickProp(int k, double xp, double yp, HWND hwnd)
     Sleep(50);
     sendClick(k, hwnd);
     Sleep(20);
-}
-
-/*******************************************************************************
- *		sendChar
- */
-inline void sendChar(char ch, HWND hwnd)
-{
-    SendMessage(hwnd, WM_CHAR, ch, 0);
 }
 
 /*******************************************************************************

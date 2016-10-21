@@ -25,13 +25,15 @@ void sendKeyDown(char vk, HWND hwnd);
 
 void sendKeyUp(char vk, HWND hwnd);
 
+void sendChar(char ch, HWND hwnd);
+
+void sendKeyChar(char vk, char ch, HWND hwnd);
+
 void sendClick(int k, HWND hwnd);
 
 void moveMouse(double xprop, double yprop, HWND target);
 
 void clickProp(int key, double xprop, double yprop, HWND target);
-
-void sendChar(char ch, HWND hwnd);
 
 void setText(char *txt, HWND hwnd);
 
