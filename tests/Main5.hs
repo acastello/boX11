@@ -8,7 +8,8 @@ b :: Bindings
 b = fromList
     [ read "1" .> clickWins 1 =<< getWins byClassEx "GxWindowClassD3d\\|GxWindowClassOpenGl" 
     , read "m" .> printBindings
-    , read "w" .> io . print =<< getWins byClassEx "GxWindowClass.*"
+    , read "w" .> io $ putStrLn "..."
+    , read "w up" .> io . print =<< getWins byClassEx "GxWindowClass.*"
     , read "q" .> exitX
     ]
 
