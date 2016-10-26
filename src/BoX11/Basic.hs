@@ -170,6 +170,7 @@ withMods mods window act = do
     ret <- act
     traverse (flip sendKeyUp window) mods
     return ret
+
     
 --------------------------------------------------------------------------------
 -- 

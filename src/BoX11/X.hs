@@ -31,9 +31,12 @@ getCursorPos = liftIO B.getCursorPos
 
 -- withKM :: KM -> ([VK] -> VK -> X a) -> X (X a)
 
-broadcast :: Traversable t => KM -> X (t HWND -> X ())
+
+-- broadcast the triggering event
+broadcast :: HWND -> X ()
 broadcast k = do
-    (mods,vk) <- portKM k
+    km <- askKM
+    (mods,vk) <- portKM km
     if vk <= 7 then
         return $ \ws -> clickWins (fromIntegral $ if vk > 4 then vk -1 else vk) ws
     else
@@ -73,7 +76,7 @@ sendKeyChar w = do
 pressWins :: Traversable t => VK -> t HWND -> X ()
 pressWins k ws = traverse_ (liftIO . B.sendKey k) ws
 
-clickWins :: Traversable t => Word32 -> t HWND -> X ()
+clickWins :: Traversable t => VK -> t HWND -> X ()
 clickWins k wins = inCurrentPos $ do
     (xp, yp) <- pointerProp
     traverse (liftIO . B.clickProp k xp yp) wins
