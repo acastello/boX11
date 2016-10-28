@@ -126,7 +126,7 @@ foreign import ccall unsafe "moveMouse"
 --------------------------------------------------------------------------------
 
 foreign import ccall unsafe "clickProp"
-    clickProp :: Word32 -> Double -> Double -> HWND -> IO ()
+    clickProp :: VK -> Double -> Double -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- setText

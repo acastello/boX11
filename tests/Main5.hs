@@ -13,6 +13,10 @@ b = fromList
     , read "q" .> exitX
     ]
 
+b2 :: Bindings
+b2 = fromList
+    [ read "m" .> io $ putStrLn "m..." ]
+
 main = do
-    runX' $ setBindings b >> mainLoop
+    runX' $ setBindings (mconcat [b,b2]) >> mainLoop
     return ()

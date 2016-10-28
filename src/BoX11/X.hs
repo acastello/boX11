@@ -1,8 +1,9 @@
 module BoX11.X
     -- reexports
     ( module BoX11.Basic.Types
-    , sendChar
-    ,getWins, getWinsBy, getCursorPos, broadcast, sendKeyDown, sendKeyUp, sendKeyChar, clickWins, portKM)
+    , transmit, transmitS, broadcast, broadcastS
+    , sendChar, getWins, getWinsBy, getCursorPos 
+    , sendKeyDown, sendKeyUp, sendKeyChar, clickWins, portKM)
     where
 
 import XHotkey
@@ -29,18 +30,56 @@ getWinsBy = liftIO . B.getWinsBy
 getCursorPos :: X (Word, Word)
 getCursorPos = liftIO B.getCursorPos
 
--- withKM :: KM -> ([VK] -> VK -> X a) -> X (X a)
+withKM :: KM -> ([VK] -> VK -> X a) -> X (X a)
+withKM km f = do
+    (mods, vk) <- portKM km
+    return $ f mods vk
 
 
--- broadcast the triggering event
-broadcast :: HWND -> X ()
-broadcast k = do
+transmit :: HWND -> X ()
+transmit w = do
     km <- askKM
-    (mods,vk) <- portKM km
-    if vk <= 7 then
-        return $ \ws -> clickWins (fromIntegral $ if vk > 4 then vk -1 else vk) ws
-    else
-        return $ \ws -> pressWins vk ws
+    (mods, vk) <- portKM km
+    case km of
+        KM _ _ (MButton _) -> clickWin_ mods vk w
+        _ -> sendKeyChar_ mods vk w
+
+transmitS :: HWND -> X ()
+transmitS w = do
+    km <- askKM 
+    (mods, vk) <- portKM km
+    case km of 
+        KM _ _ (MButton _) -> clickWin_ mods vk w
+        KM False _ _ -> do
+            io $ B.withMods mods w $ B.sendKeyDown vk w 
+            sendChar w
+        KM True _ _ -> io $ do
+            B.sendKeyUp vk w 
+
+broadcast :: Traversable t => t HWND -> X ()
+broadcast ws = do
+    km <- askKM
+    (mods, vk) <- portKM km
+    case km of
+        KM _ _ (MButton _) -> clickWins vk ws
+        _ -> traverse_ (sendKeyChar_ mods vk) ws
+
+broadcastS :: Traversable t => t HWND -> X ()
+broadcastS ws = do
+    km <- askKM
+    (mods, vk) <- portKM km
+    case km of
+        KM _ _ (MButton _) -> clickWins vk ws
+        KM False _ _ -> do
+            (_, str) <- askKeysym
+            io $ flip traverse_ ws $ \w -> B.withMods mods w $ do 
+                B.sendKeyDown vk w 
+                case str of
+                    (c:_) -> B.sendChar c w
+                    _ -> return ()
+        KM True _ _ -> io $ do
+            traverse_ (B.sendKeyUp vk) ws 
+        
 
 sendKeyDown :: HWND -> X ()
 sendKeyDown w = do
@@ -64,17 +103,29 @@ sendChar w = do
 
 sendKeyChar :: HWND -> X ()
 sendKeyChar w = do
-    XEnv { currentEvent = ev } <- ask
-    let kev = asKeyEvent ev
     (mods, vk) <- portKM =<< askKM
-    (_, c:_) <- io $ lookupString kev
-    io $ traverse (flip B.sendKeyDown w) mods
-    io $ B.sendKeyChar vk c w
-    io $ traverse (flip B.sendKeyUp w) mods
+    sendKeyChar_ mods vk w
     return ()
+
+sendKeyChar_ :: [VK] -> VK -> HWND -> X ()
+sendKeyChar_ mods vk w = do
+    (_, s) <- askKeysym 
+    case s of 
+        (c:_) -> io $ B.withMods mods w $ B.sendKeyChar vk c w
+        _ -> return () 
     
 pressWins :: Traversable t => VK -> t HWND -> X ()
 pressWins k ws = traverse_ (liftIO . B.sendKey k) ws
+
+clickWin :: HWND -> X ()
+clickWin w = do
+    (mods, vk) <- portKM =<< askKM
+    when (vk <= 9) $ clickWin_ mods vk w
+        
+clickWin_ :: [VK] -> VK -> HWND -> X ()
+clickWin_ mods k w = do
+    (xp, yp) <- pointerProp
+    io $ B.withMods mods w $ B.clickProp k xp yp w
 
 clickWins :: Traversable t => VK -> t HWND -> X ()
 clickWins k wins = inCurrentPos $ do

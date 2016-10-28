@@ -15,7 +15,7 @@ so=$main.so
 
 export PATH=$PATH:$HOME/.cabal/bin
 
-[[ `stat $src -c %Y` > `stat $so -c %Y` ]] &&  boxghc $main.hs -o $main.so
+[[ `stat $src -c %Y 2>/dev/null` > `stat $so -c %Y` ]] &&  boxghc $main.hs -o $main.so
 
 if [ -f "$main.so" ]; then
     exec boxlaunch.exe $main.so
