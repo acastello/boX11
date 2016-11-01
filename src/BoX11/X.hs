@@ -184,9 +184,9 @@ portKM (KM u st (MButton b)) =
     return (modsToVK st, port' b)
     where 
         port' b 
-            | b <= 3 = fromIntegral b
-            | b <= 5 = fromIntegral (b+2)
-            | otherwise = fromIntegral (b-2)
+            | b <= 3 = fromIntegral b   -- left, middle and right click
+            | b <= 7 = fromIntegral (b+2)   -- scroll up/down/left/right
+            | otherwise = fromIntegral (b-4)    -- extra buttons
 
 -- sendKey :: Foldable t => KM -> t HWND -> X ()
 -- sendKey k ws = do

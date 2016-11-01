@@ -211,6 +211,12 @@ inline void sendClick(int k, HWND hwnd)
         case 7:
             SendMessage(hwnd, WM_MOUSEWHEEL, (-1)<<16, 0);
             break;
+        case 8:
+            SendMessage(hwnd, WM_MOUSEHWHEEL, (1)<<16, 0);
+            break;
+        case 9:
+            SendMessage(hwnd, WM_MOUSEWHHEEL, (-1)<<16, 0);
+            break;
         default:
             break;
     }
