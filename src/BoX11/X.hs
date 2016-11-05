@@ -80,7 +80,6 @@ broadcastS ws = do
         KM True _ _ -> io $ do
             traverse_ (B.sendKeyUp vk) ws 
         
-
 sendKeyDown :: HWND -> X ()
 sendKeyDown w = do
     km <- askKM
