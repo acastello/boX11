@@ -8,7 +8,7 @@ keys :: [KM]
 keys = (read <$> ["Return", "BackSpace", "Tab", "space", "ctrl-mouse1"]) ++ (enumFromTo (read "a") (read "z")) ++ (enumFromTo (read "0") (read "9"))
 
 movement :: [KM]
-movement = read <$> ["w", "a", "s", "d"]
+movement = alt_ <$> read <$> ["w", "a", "s", "d"]
 
 exit :: Bindings
 exit = branch [read "ctrl-alt-scroll-BackSpace"] exitX
