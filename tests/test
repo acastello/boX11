@@ -2,6 +2,11 @@
 
 cd `dirname $0`
 
+if [ "$1" = "-f" ] ; then
+    force=1
+    shift
+fi
+
 [[ $# > 0 ]] && target="$1" || target=1 
 
 if [[ "$1" -eq "rm" ]]; then
@@ -15,7 +20,9 @@ so=$main.so
 
 export PATH=$PATH:$HOME/.cabal/bin
 
-[[ `stat $src -c %Y 2>/dev/null` > `stat $so -c %Y` ]] &&  boxghc $main.hs -o $main.so
+if [ $so -ot $src ] || [ "$force" ] ; then
+    boxghc $main.hs -o $main.so
+fi
 
 if [ -f "$main.so" ]; then
     exec boxlaunch.exe $main.so

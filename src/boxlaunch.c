@@ -35,8 +35,10 @@ int main(int argc, char **argv)
     hs_init = dlsym(handle, "hs_init");
     ERR;
     hs_exit = dlsym(handle, "hs_exit");
+    ERR;
 
     run = dlsym(handle, "box_main");
+    ERR;
 
     hs_init(&argc, &argv);
     run();
