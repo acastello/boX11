@@ -15,6 +15,7 @@ library
                         BoX11.Basic.Types
                         BoX11.X
     build-depends:      base,
+                        containers,
                         transformers,
                         mtl,
                         array,

@@ -212,7 +212,7 @@ inline void sendClick(int k, HWND hwnd)
             SendMessage(hwnd, WM_MOUSEWHEEL, (-1)<<16, 0);
             break;
         case 8:
-            SendMessage(hwnd, WM_MOUSEHWHEEL, (1)<<16, 0);
+            SendMessage(hwnd, WM_MOUSEWHEEL, (1)<<16, 0);
             break;
         case 9:
             SendMessage(hwnd, WM_MOUSEWHEEL, (-1)<<16, 0);
@@ -280,6 +280,16 @@ char *getClass(HWND hwnd)
     return ret;
 }
 
+/*
+ *		processIdOfWindow
+ */
+DWORD processIdOfWindow(HWND hwnd)
+{
+    DWORD ret;
+    GetWindowThreadProcessId(hwnd, &ret);
+    return ret;
+}
+
 /*******************************************************************************
  *		test
  */
@@ -293,4 +303,20 @@ void test(HWND hwnd)
     // sync();
     // sched_yield();
     printf("finishing %d\n", j);
+}
+
+/*
+ *		loadLibrary
+ */
+HMODULE loadLibrary(char *dllname)
+{
+    return LoadLibraryA(dllname);
+}
+
+/*
+ *		getProcAddress
+ */
+void *getProcAddress(HMODULE module, char *funcname)
+{
+    return GetProcAddress(module, funcname);
 }

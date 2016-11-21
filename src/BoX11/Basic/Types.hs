@@ -1,5 +1,8 @@
 module BoX11.Basic.Types
-    ( HWND, VK, Flags, byName, byClass, byNameEx, byClassEx, vk_num, vk_char
+-- windows types
+    ( HWND, HModule, VK
+-- boX11 C-types and values
+    , Flags, byName, byClass, byNameEx, byClassEx, vk_num, vk_char
     , vk_SHIFT, vk_CONTROL, vk_ALT, vk_WIN, vk_LWIN
     ) where
 
@@ -8,6 +11,8 @@ import Foreign.C
 import Data.Char
 
 type HWND = Word64
+
+type HModule = Word64
 
 type VK = Word8
 
