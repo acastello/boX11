@@ -294,3 +294,19 @@ void test(HWND hwnd)
     // sched_yield();
     printf("finishing %d\n", j);
 }
+
+/*
+ *		loadLibrary
+ */
+HMODULE loadLibrary(char *dllname)
+{
+    return LoadLibraryA(dllname);
+}
+
+/*
+ *		getProcAddress
+ */
+void *getProcAddress(HMODULE module, char *funcname)
+{
+    return GetProcAddress(module, funcname);
+}

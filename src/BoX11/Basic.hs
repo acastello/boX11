@@ -4,7 +4,7 @@ module BoX11.Basic
     ( module BoX11.Basic.Types 
     , getWins, getWinsBy, getCursorPos, messageBox, sendKey, sendKeyDown
     , sendKeyUp, sendChar, sendKeyChar, sendClick, moveMouse, clickProp, setText, getName
-    , getClass, withMods
+    , getClass, withMods, loadLibrary, getProcAddress
     ) where
 
 import BoX11.Basic.Types
@@ -16,6 +16,13 @@ import Foreign.Marshal.Array
 
 import Data.Bits
 import Data.ByteString as BS
+import Data.IORef
+
+import System.IO.Unsafe
+
+import Unsafe.Coerce
+
+import qualified Data.Map as M
 
 --------------------------------------------------------------------------------
 -- getWins  
@@ -173,6 +180,37 @@ withMods mods window act = do
 
     
 --------------------------------------------------------------------------------
+-- loadLibrary
+--------------------------------------------------------------------------------
+
+loadLibrary :: ByteString -> IO HModule
+loadLibrary dllname = do
+    lm <- readIORef lib_map
+    case M.lookup dllname lm of
+        Just handle -> return handle
+        Nothing -> do
+            handle <- useAsCString dllname c_loadLibrary 
+            modifyIORef lib_map $ \m -> M.insert dllname handle m
+            return handle
+
+foreign import ccall "loadLibrary"
+    c_loadLibrary :: CString -> IO HModule
+
+lib_map :: IORef (M.Map ByteString HModule)
+{-# NOINLINE lib_map #-}
+lib_map = unsafePerformIO (newIORef mempty)
+
+--------------------------------------------------------------------------------
+-- getProcAddress
+--------------------------------------------------------------------------------
+
+getProcAddress :: HModule -> ByteString -> IO a
+getProcAddress mod funcname = unsafeCoerce <$> useAsCString funcname $ c_getProcAddress mod
+
+foreign import ccall "getProcAddress"
+    c_getProcAddress :: HModule -> CString -> IO ()
+
+--------------------------------------------------------------------------------
 -- 
 --------------------------------------------------------------------------------
 
@@ -183,3 +221,10 @@ withMods mods window act = do
 foreign import ccall safe "test"
     test :: HWND -> IO ()
 
+
+--------------------------------------------------------------------------------
+-- misc utility stuff
+--------------------------------------------------------------------------------
+
+-- foreign import ccall "dynamic"
+    -- mkFun :: FunPtr (a -> b) -> (a -> b)
