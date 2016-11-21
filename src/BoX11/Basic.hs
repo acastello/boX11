@@ -21,7 +21,7 @@ import Data.ByteString as BS
 -- getWins  
 --------------------------------------------------------------------------------
 
-getWins :: Flags -> ByteString -> IO [Word64]
+getWins :: Flags -> ByteString -> IO [HWND]
 getWins flags bs = do
     ptr <- useAsCString bs (getWins' flags)
     peekArray0 0 ptr
@@ -32,7 +32,7 @@ foreign import ccall unsafe "getWins" getWins' :: Flags -> CString -> IO (Ptr Wo
 -- getWinsBy  
 --------------------------------------------------------------------------------
 
-getWinsBy :: (Word64 -> IO Bool) -> IO [Word64]
+getWinsBy :: (HWND -> IO Bool) -> IO [Word64]
 getWinsBy f = do
     let f' h = do
         ret <- f h
@@ -43,7 +43,7 @@ getWinsBy f = do
     ptr <- getWinsBy' f''
     peekArray0 0 ptr
     
-foreign import ccall "wrapper" mkF :: (Word64 -> IO CInt) -> IO (FunPtr (Word64 -> IO CInt))
+foreign import ccall "wrapper" mkF :: (HWND -> IO CInt) -> IO (FunPtr (HWND -> IO CInt))
 foreign import ccall safe "getWinsBy" 
     getWinsBy' :: FunPtr (Word64 -> IO CInt) -> IO (Ptr Word64)
 
