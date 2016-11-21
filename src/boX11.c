@@ -280,6 +280,16 @@ char *getClass(HWND hwnd)
     return ret;
 }
 
+/*
+ *		processIdOfWindow
+ */
+DWORD processIdOfWindow(HWND hwnd)
+{
+    DWORD ret;
+    GetWindowThreadProcessId(hwnd, &ret);
+    return ret;
+}
+
 /*******************************************************************************
  *		test
  */
