@@ -141,8 +141,8 @@ int messageBox(char *body, char *title, int flags)
  */
 inline void sendKey(char vk, HWND hwnd)
 {
-    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
-    SendMessage(hwnd, WM_KEYUP, vk, 0);
+    PostMessage(hwnd, WM_KEYDOWN, vk, 0);
+    PostMessage(hwnd, WM_KEYUP, vk, 0);
 }
 
 /*
@@ -150,7 +150,7 @@ inline void sendKey(char vk, HWND hwnd)
  */
 inline void sendKeyDown(char vk, HWND hwnd)
 {
-    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
+    PostMessage(hwnd, WM_KEYDOWN, vk, 0);
 }
 
 /*
@@ -158,7 +158,7 @@ inline void sendKeyDown(char vk, HWND hwnd)
  */
 inline void sendKeyUp(char vk, HWND hwnd)
 {
-    SendMessage(hwnd, WM_KEYUP, vk, 0);
+    PostMessage(hwnd, WM_KEYUP, vk, 0);
 }
 
 /*******************************************************************************
@@ -166,7 +166,7 @@ inline void sendKeyUp(char vk, HWND hwnd)
  */
 inline void sendChar(char ch, HWND hwnd)
 {
-    SendMessage(hwnd, WM_CHAR, ch, 0);
+    PostMessage(hwnd, WM_CHAR, ch, 0);
 }
 
 /*
@@ -174,9 +174,9 @@ inline void sendChar(char ch, HWND hwnd)
  */
 inline void sendKeyChar(char vk, char ch, HWND hwnd)
 {
-    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
-    SendMessage(hwnd, WM_CHAR, ch, 0);
-    SendMessage(hwnd, WM_KEYUP, vk, 0);
+    PostMessage(hwnd, WM_KEYDOWN, vk, 0);
+    PostMessage(hwnd, WM_CHAR, ch, 0);
+    PostMessage(hwnd, WM_KEYUP, vk, 0);
 }
 
 /*
@@ -186,36 +186,36 @@ inline void sendClick(int k, HWND hwnd)
 {
     switch (k) {
         case 1:
-            SendMessage(hwnd, WM_LBUTTONDOWN, 0, 0);
-            SendMessage(hwnd, WM_LBUTTONUP, 0, 0);
+            PostMessage(hwnd, WM_LBUTTONDOWN, 0, 0);
+            PostMessage(hwnd, WM_LBUTTONUP, 0, 0);
             break;
         case 2:
-            SendMessage(hwnd, WM_MBUTTONDOWN, 0, 0);
-            SendMessage(hwnd, WM_MBUTTONUP, 0, 0);
+            PostMessage(hwnd, WM_MBUTTONDOWN, 0, 0);
+            PostMessage(hwnd, WM_MBUTTONUP, 0, 0);
             break;
         case 3:
-            SendMessage(hwnd, WM_RBUTTONDOWN, 0, 0);
-            SendMessage(hwnd, WM_RBUTTONUP, 0, 0);
+            PostMessage(hwnd, WM_RBUTTONDOWN, 0, 0);
+            PostMessage(hwnd, WM_RBUTTONUP, 0, 0);
             break;
         case 4:
-            SendMessage(hwnd, WM_XBUTTONDOWN, 1<<16, 0);
-            SendMessage(hwnd, WM_XBUTTONUP,   1<<16, 0);
+            PostMessage(hwnd, WM_XBUTTONDOWN, 1<<16, 0);
+            PostMessage(hwnd, WM_XBUTTONUP,   1<<16, 0);
             break;
         case 5:
-            SendMessage(hwnd, WM_XBUTTONDOWN, 2<<16, 0);
-            SendMessage(hwnd, WM_XBUTTONUP,   2<<16, 0);
+            PostMessage(hwnd, WM_XBUTTONDOWN, 2<<16, 0);
+            PostMessage(hwnd, WM_XBUTTONUP,   2<<16, 0);
             break;
         case 6:
-            SendMessage(hwnd, WM_MOUSEWHEEL, 1<<16, 0);
+            PostMessage(hwnd, WM_MOUSEWHEEL, 1<<16, 0);
             break;
         case 7:
-            SendMessage(hwnd, WM_MOUSEWHEEL, (-1)<<16, 0);
+            PostMessage(hwnd, WM_MOUSEWHEEL, (-1)<<16, 0);
             break;
         case 8:
-            SendMessage(hwnd, WM_MOUSEWHEEL, (1)<<16, 0);
+            PostMessage(hwnd, WM_MOUSEWHEEL, (1)<<16, 0);
             break;
         case 9:
-            SendMessage(hwnd, WM_MOUSEWHEEL, (-1)<<16, 0);
+            PostMessage(hwnd, WM_MOUSEWHEEL, (-1)<<16, 0);
             break;
         default:
             break;
@@ -257,7 +257,7 @@ inline void clickProp(int k, double xp, double yp, HWND hwnd)
   */
 inline void setText(char *txt, HWND hwnd)
 {
-    SendMessage(hwnd, WM_SETTEXT, 0, (ssize_t) txt);
+    PostMessage(hwnd, WM_SETTEXT, 0, (ssize_t) txt);
 }
 
 /*******************************************************************************
@@ -299,7 +299,7 @@ void test(HWND hwnd)
     int j = i++;
     printf("starting  %d\n", j);
     getchar();
-    // SendMessage(hwnd, WM_KEYDOWN, 90, 0);
+    // PostMessage(hwnd, WM_KEYDOWN, 90, 0);
     // sync();
     // sched_yield();
     printf("finishing %d\n", j);
