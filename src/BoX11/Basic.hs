@@ -2,12 +2,12 @@
 
 module BoX11.Basic 
     ( module BoX11.Basic.Types 
-    , traverseF
+    , forF, traverseF
     , getWins, getWinsBy, getCursorPos, messageBox
     , postKey, postKeyUp
     , sendKey, sendKeyDown
     , sendKeyUp, sendChar, sendKeyChar, sendClick, moveMouse, clickProp, setText, getName
-    , getClass, withMods, loadLibrary, getProcAddress
+    , getClass, withMods, withPosted, loadLibrary, getProcAddress
     ) where
 
 import BoX11.Basic.Types
@@ -31,6 +31,9 @@ import System.IO.Unsafe
 import Unsafe.Coerce
 
 import qualified Data.Map as M
+
+forF :: Traversable t => t a -> (a -> IO b) -> IO ()
+forF = flip traverseF
 
 traverseF :: Traversable t => (a -> IO b) -> t a -> IO ()
 traverseF f = traverse_ (forkIO . void . f)
@@ -96,6 +99,13 @@ foreign import ccall safe "messageBox"
 
 foreign import ccall safe "postKey"
     postKey :: VK -> HWND -> IO ()
+
+--
+-- postKeyDown
+--
+
+foreign import ccall safe "postKeyDown"
+    postKeyDown :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- postKeyUp
@@ -203,6 +213,12 @@ withMods mods window act = do
     traverse (flip sendKeyUp window) mods
     return ret
 
+withPosted :: [VK] -> HWND -> IO a -> IO a
+withPosted mods window act = do
+    traverse (flip postKeyDown window) mods
+    ret <- act
+    traverse (flip postKeyUp window) mods
+    return ret 
     
 --------------------------------------------------------------------------------
 -- loadLibrary

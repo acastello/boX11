@@ -136,15 +136,6 @@ int messageBox(char *body, char *title, int flags)
     return MessageBoxA(NULL, body, title, flags);
 }
 
-/*******************************************************************************
- *		sendKey
- */
-inline void sendKey(char vk, HWND hwnd)
-{
-    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
-    SendMessage(hwnd, WM_KEYUP, vk, 0);
-}
-
 /*
  *      postKey
  */
@@ -155,11 +146,28 @@ inline void postKey(char vk, HWND hwnd)
 }
 
 /*
+ *      postKeyDown
+ */
+inline void postKeyDown(char vk, HWND hwnd)
+{
+    PostMessage(hwnd, WM_KEYDOWN, vk, 0);
+}
+
+/*
  *      postKeyUp
  */
 inline void postKeyUp(char vk, HWND hwnd)
 {
     PostMessage(hwnd, WM_KEYUP, vk, 0);
+}
+
+/*******************************************************************************
+ *		sendKey
+ */
+inline void sendKey(char vk, HWND hwnd)
+{
+    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
+    SendMessage(hwnd, WM_KEYUP, vk, 0);
 }
 
 /*
