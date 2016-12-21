@@ -2,8 +2,9 @@
 
 module BoX11.Basic 
     ( module BoX11.Basic.Types 
+    , traverseF
     , getWins, getWinsBy, getCursorPos, messageBox
-    , postKey
+    , postKey, postKeyUp
     , sendKey, sendKeyDown
     , sendKeyUp, sendChar, sendKeyChar, sendClick, moveMouse, clickProp, setText, getName
     , getClass, withMods, loadLibrary, getProcAddress
@@ -11,7 +12,12 @@ module BoX11.Basic
 
 import BoX11.Basic.Types
 
-import Foreign
+import Data.Foldable
+
+import Control.Concurrent
+import Control.Monad
+
+import Foreign hiding (void)
 import Foreign.C
 import Foreign.C.String
 import Foreign.Marshal.Array
@@ -25,6 +31,9 @@ import System.IO.Unsafe
 import Unsafe.Coerce
 
 import qualified Data.Map as M
+
+traverseF :: Traversable t => (a -> IO b) -> t a -> IO ()
+traverseF f = traverse_ (forkIO . void . f)
 
 --------------------------------------------------------------------------------
 -- getWins  
@@ -87,6 +96,13 @@ foreign import ccall safe "messageBox"
 
 foreign import ccall safe "postKey"
     postKey :: VK -> HWND -> IO ()
+
+--------------------------------------------------------------------------------
+-- postKeyUp
+--------------------------------------------------------------------------------
+
+foreign import ccall safe "postKeyUp"
+    postKeyUp :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendKey
