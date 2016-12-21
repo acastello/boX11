@@ -19,6 +19,8 @@ HWND *getWinsBy(int (*filter_func)(HWND));
 
 int messageBox(char *body, char *title, int flags);
 
+void postKey(char vk, HWND hwnd);
+
 void sendKey(char vk, HWND hwnd);
 
 void sendKeyDown(char vk, HWND hwnd);

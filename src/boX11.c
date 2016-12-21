@@ -141,6 +141,15 @@ int messageBox(char *body, char *title, int flags)
  */
 inline void sendKey(char vk, HWND hwnd)
 {
+    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
+    SendMessage(hwnd, WM_KEYUP, vk, 0);
+}
+
+/*
+ *      postKey
+ */
+inline void postKey(char vk, HWND hwnd)
+{
     PostMessage(hwnd, WM_KEYDOWN, vk, 0);
     PostMessage(hwnd, WM_KEYUP, vk, 0);
 }
@@ -174,9 +183,10 @@ inline void sendChar(char ch, HWND hwnd)
  */
 inline void sendKeyChar(char vk, char ch, HWND hwnd)
 {
-    PostMessage(hwnd, WM_KEYDOWN, vk, 0);
-    PostMessage(hwnd, WM_CHAR, ch, 0);
-    PostMessage(hwnd, WM_KEYUP, vk, 0);
+    printf("sendKeyChar %d\n", vk);
+    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
+    SendMessage(hwnd, WM_CHAR, ch, 0);
+    SendMessage(hwnd, WM_KEYUP, vk, 0);
 }
 
 /*

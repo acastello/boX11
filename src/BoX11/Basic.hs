@@ -2,7 +2,9 @@
 
 module BoX11.Basic 
     ( module BoX11.Basic.Types 
-    , getWins, getWinsBy, getCursorPos, messageBox, sendKey, sendKeyDown
+    , getWins, getWinsBy, getCursorPos, messageBox
+    , postKey
+    , sendKey, sendKeyDown
     , sendKeyUp, sendChar, sendKeyChar, sendClick, moveMouse, clickProp, setText, getName
     , getClass, withMods, loadLibrary, getProcAddress
     ) where
@@ -78,6 +80,13 @@ messageBox msg title = do
             
 foreign import ccall safe "messageBox" 
     messageBox' :: CString -> CString -> CInt -> IO CInt
+
+--------------------------------------------------------------------------------
+-- postKey
+--------------------------------------------------------------------------------
+
+foreign import ccall safe "postKey"
+    postKey :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendKey
