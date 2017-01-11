@@ -165,9 +165,9 @@ vkMap = listArray (minBound, maxBound) $ (fromIntegral . fromEnum) <$>
 
 modsToVK :: Modifier -> [VK]
 modsToVK m = mconcat
-    [ if testBit m 1 then [vk_SHIFT] else []
-    , if testBit m 3 then [vk_CONTROL] else []
-    , if testBit m 4 then [vk_ALT] else []
+    [ if testBit m 0 then [vk_SHIFT] else []
+    , if testBit m 2 then [vk_CONTROL] else []
+    , if testBit m 3 then [vk_ALT] else []
     , if testBit m 6 then [vk_WIN] else []
     ]
     

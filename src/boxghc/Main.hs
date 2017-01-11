@@ -20,7 +20,7 @@ main = do
     libdir <- return . (filter (/= '\n')) =<< readProcess compiler ["--print-libdir"] "" 
     vers <- return . (filter (/= '\n')) =<< readProcess compiler ["--numeric-version"] "" 
     let target = if args == [] then error "no target" else head args
-        rts = libdir ++ "/rts/libHSrts-ghc" ++ vers ++ ".so"
+        rts = libdir ++ "/rts/libHSrts_thr-ghc" ++ vers ++ ".so"
         verb = getVerbosity args
     fe <- fileExist rts
     when (not fe) $ error $ "couldn't find runtime library " ++ rts

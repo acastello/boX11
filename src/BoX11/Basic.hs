@@ -97,63 +97,63 @@ foreign import ccall safe "messageBox"
 -- postKey
 --------------------------------------------------------------------------------
 
-foreign import ccall safe "postKey"
+foreign import ccall unsafe "postKey"
     postKey :: VK -> HWND -> IO ()
 
 --
 -- postKeyDown
 --
 
-foreign import ccall safe "postKeyDown"
+foreign import ccall unsafe "postKeyDown"
     postKeyDown :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- postKeyUp
 --------------------------------------------------------------------------------
 
-foreign import ccall safe "postKeyUp"
+foreign import ccall unsafe "postKeyUp"
     postKeyUp :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendKey
 --------------------------------------------------------------------------------
 
-foreign import ccall safe "sendKey" 
+foreign import ccall unsafe "sendKey" 
     sendKey :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendKeyDown
 --------------------------------------------------------------------------------
 
-foreign import ccall safe "sendKeyDown"
+foreign import ccall unsafe "sendKeyDown"
     sendKeyDown :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendKeyUp
 --------------------------------------------------------------------------------
 
-foreign import ccall safe "sendKeyUp"
+foreign import ccall unsafe "sendKeyUp"
     sendKeyUp :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendChar
 --------------------------------------------------------------------------------
 
-foreign import ccall safe "sendChar" 
+foreign import ccall unsafe "sendChar" 
     sendChar :: Char -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendKeyChar
 --------------------------------------------------------------------------------
 
-foreign import ccall safe "sendKeyChar"
+foreign import ccall unsafe "sendKeyChar"
     sendKeyChar :: VK -> Char -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendClick
 --------------------------------------------------------------------------------
 
-foreign import ccall safe "sendClick"
+foreign import ccall unsafe "sendClick"
     sendClick :: VK -> HWND -> IO ()
 
 --------------------------------------------------------------------------------

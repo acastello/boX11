@@ -25,6 +25,7 @@ library
     extensions:         DoAndIfThenElse
 executable boxghc
     hs-source-dirs:     src/boxghc
+    ghc-options:        -threaded
     main-is:            Main.hs
     extensions:         ForeignFunctionInterface
     build-depends:      directory, filepath, process, unix
