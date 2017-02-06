@@ -3,7 +3,7 @@ module BoX11.X
     ( module BoX11.Basic.Types
     , transmit, transmitS, broadcast, broadcastS
     , sendChar, getWins, getWinsBy, getCursorPos 
-    , sendKeyDown, sendKeyUp, sendKeyChar, clickWins, portKM)
+    , sendKeyDown, sendKeyUp, sendKeyChar, clickWins, easyPost, portKM)
     where
 
 import XHotkey
@@ -112,6 +112,11 @@ sendKeyChar_ mods vk w = do
     case s of 
         (c:_) -> io $ B.withMods mods w $ B.sendKeyChar vk c w
         _ -> return () 
+
+easyPost :: KM -> HWND -> X ()
+easyPost km wow = do
+    (mods, vk) <- portKM km
+    io $ B.withPosted mods wow $ B.postKey vk wow
     
 pressWins :: Traversable t => VK -> t HWND -> X ()
 pressWins k ws = traverse_ (liftIO . B.sendKey k) ws

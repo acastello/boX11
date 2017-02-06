@@ -8,6 +8,7 @@ module BoX11.Basic
     , sendKey, sendKeyDown
     , sendKeyUp, sendChar, sendKeyChar, sendClick, moveMouse, clickProp, setText, getName
     , getClass, withMods, withPosted, loadLibrary, getProcAddress
+    , getForeground, focusWin
     ) where
 
 import BoX11.Basic.Types
@@ -220,6 +221,12 @@ withPosted mods window act = do
     traverse (flip postKeyUp window) mods
     return ret 
     
+foreign import ccall "GetForegroundWindow"
+    getForeground :: IO HWND
+
+foreign import ccall "focusWin"
+    focusWin :: HWND -> IO ()
+
 --------------------------------------------------------------------------------
 -- loadLibrary
 --------------------------------------------------------------------------------
@@ -271,5 +278,3 @@ foreign import ccall safe "test"
 -- misc utility stuff
 --------------------------------------------------------------------------------
 
--- foreign import ccall "dynamic"
-    -- mkFun :: FunPtr (a -> b) -> (a -> b)

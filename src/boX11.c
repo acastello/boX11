@@ -113,6 +113,14 @@ BOOL CALLBACK _getwinsby_cb(HWND hwnd, LPARAM lparam)
     return TRUE;
 }
 
+/*
+ *      getFocus
+ */
+HWND getFocus(void)
+{
+    return GetFocus();
+}
+
 /*******************************************************************************
  *		getCursorPos
  */
@@ -209,25 +217,41 @@ inline void sendKeyChar(char vk, char ch, HWND hwnd)
  */
 inline void sendClick(int k, HWND hwnd)
 {
+    #define sendClick_delay 0
     switch (k) {
         case 1:
             SendMessage(hwnd, WM_LBUTTONDOWN, 0, 0);
+            #if sendClick_delay > 0
+                Sleep(sendClick_delay);
+            #endif
             SendMessage(hwnd, WM_LBUTTONUP, 0, 0);
             break;
         case 2:
             SendMessage(hwnd, WM_MBUTTONDOWN, 0, 0);
+            #if sendClick_delay > 0
+                Sleep(sendClick_delay);
+            #endif
             SendMessage(hwnd, WM_MBUTTONUP, 0, 0);
             break;
         case 3:
             SendMessage(hwnd, WM_RBUTTONDOWN, 0, 0);
+            #if sendClick_delay > 0
+                Sleep(sendClick_delay);
+            #endif
             SendMessage(hwnd, WM_RBUTTONUP, 0, 0);
             break;
         case 4:
             SendMessage(hwnd, WM_XBUTTONDOWN, 1<<16, 0);
+            #if sendClick_delay > 0
+                Sleep(sendClick_delay);
+            #endif
             SendMessage(hwnd, WM_XBUTTONUP,   1<<16, 0);
             break;
         case 5:
             SendMessage(hwnd, WM_XBUTTONDOWN, 2<<16, 0);
+            #if sendClick_delay > 0
+                Sleep(sendClick_delay);
+            #endif
             SendMessage(hwnd, WM_XBUTTONUP,   2<<16, 0);
             break;
         case 6:
@@ -272,9 +296,9 @@ inline void moveMouse(double xp, double yp, HWND hwnd)
 inline void clickProp(int k, double xp, double yp, HWND hwnd)
 {
     moveMouse(xp, yp, hwnd);
-    Sleep(50);
+    Sleep(70);
     sendClick(k, hwnd);
-    Sleep(20);
+    Sleep(70);
 }
 
 /*******************************************************************************
@@ -303,6 +327,11 @@ char *getClass(HWND hwnd)
     static char ret[1024];
     GetClassName(hwnd, ret, sizeof(ret));
     return ret;
+}
+
+void focusWin(HWND hwnd)
+{
+    SetForegroundWindow(hwnd);
 }
 
 /*
