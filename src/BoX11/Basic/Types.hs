@@ -14,7 +14,7 @@ type HWND = Word64
 
 type HModule = Word64
 
-type VK = Word8
+type VK = Word32
 
 type Flags = CInt
 byName =    0 :: CInt

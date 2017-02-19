@@ -19,21 +19,21 @@ HWND *getWinsBy(int (*filter_func)(HWND));
 
 int messageBox(char *body, char *title, int flags);
 
-void postKey(char vk, HWND hwnd);
+void postKey(int vk, HWND hwnd);
 
-void postKeyDown(char vk, HWND hwnd);
+void postKeyDown(int vk, HWND hwnd);
 
-void postKeyUp(char vk, HWND hwnd);
+void postKeyUp(int vk, HWND hwnd);
 
-void sendKey(char vk, HWND hwnd);
+void sendKey(int vk, HWND hwnd);
 
-void sendKeyDown(char vk, HWND hwnd);
+void sendKeyDown(int vk, HWND hwnd);
 
-void sendKeyUp(char vk, HWND hwnd);
+void sendKeyUp(int vk, HWND hwnd);
 
 void sendChar(char ch, HWND hwnd);
 
-void sendKeyChar(char vk, char ch, HWND hwnd);
+void sendKeyChar(int vk, char ch, HWND hwnd);
 
 void sendClick(int k, HWND hwnd);
 

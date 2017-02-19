@@ -6,6 +6,12 @@
 
 #include "boX11.h"
 
+#define KEYDOWN(hwnd, vk) hwnd, WM_KEYDOWN, vk, \
+    1 | (MapVirtualKey(vk,0) << 16)
+
+#define KEYUP(hwnd, vk) hwnd, WM_KEYUP, vk, \
+    1 | (1 << 31) | (MapVirtualKey(vk,0) << 16)
+
 #define NWINS 64
 
 /*******************************************************************************
@@ -147,51 +153,51 @@ int messageBox(char *body, char *title, int flags)
 /*
  *      postKey
  */
-inline void postKey(char vk, HWND hwnd)
+inline void postKey(int vk, HWND hwnd)
 {
-    PostMessage(hwnd, WM_KEYDOWN, vk, 0);
-    PostMessage(hwnd, WM_KEYUP, vk, 0);
+    PostMessage(KEYDOWN(hwnd,vk));
+    PostMessage(KEYUP(hwnd,vk));
 }
 
 /*
  *      postKeyDown
  */
-inline void postKeyDown(char vk, HWND hwnd)
+inline void postKeyDown(int vk, HWND hwnd)
 {
-    PostMessage(hwnd, WM_KEYDOWN, vk, 0);
+    PostMessage(KEYDOWN(hwnd, vk));
 }
 
 /*
  *      postKeyUp
  */
-inline void postKeyUp(char vk, HWND hwnd)
+inline void postKeyUp(int vk, HWND hwnd)
 {
-    PostMessage(hwnd, WM_KEYUP, vk, 0);
+    PostMessage(KEYUP(hwnd,vk));
 }
 
 /*******************************************************************************
  *		sendKey
  */
-inline void sendKey(char vk, HWND hwnd)
+inline void sendKey(int vk, HWND hwnd)
 {
-    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
-    SendMessage(hwnd, WM_KEYUP, vk, 0);
+    SendMessage(KEYDOWN(hwnd, vk));
+    SendMessage(KEYUP(hwnd, vk));
 }
 
 /*
  *		sendKeyDown
  */
-inline void sendKeyDown(char vk, HWND hwnd)
+inline void sendKeyDown(int vk, HWND hwnd)
 {
-    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
+    SendMessage(KEYDOWN(hwnd, vk));
 }
 
 /*
  * 		sendKeyUp
  */
-inline void sendKeyUp(char vk, HWND hwnd)
+inline void sendKeyUp(int vk, HWND hwnd)
 {
-    SendMessage(hwnd, WM_KEYUP, vk, 0);
+    SendMessage(KEYUP(hwnd, vk));
 }
 
 /*******************************************************************************
@@ -205,11 +211,11 @@ inline void sendChar(char ch, HWND hwnd)
 /*
  *      sendKeyChar
  */
-inline void sendKeyChar(char vk, char ch, HWND hwnd)
+inline void sendKeyChar(int vk, char ch, HWND hwnd)
 {
-    SendMessage(hwnd, WM_KEYDOWN, vk, 0);
+    SendMessage(KEYDOWN(hwnd, vk));
     SendMessage(hwnd, WM_CHAR, ch, 0);
-    SendMessage(hwnd, WM_KEYUP, vk, 0);
+    SendMessage(KEYUP(hwnd, vk));
 }
 
 /*
