@@ -340,7 +340,7 @@ void focusWin(HWND hwnd)
     SetForegroundWindow(hwnd);
 }
 
-int fromVK(int vk)
+unsigned int fromVK(int vk)
 {
     return MapVirtualKey(vk, 0);
 

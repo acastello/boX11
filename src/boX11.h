@@ -15,39 +15,48 @@ HWND *getWins(int flags, char *filter);
 #define getWinsByName(filter) getWins(filter, BOX_BYNAME)
 #define getWinsByNameEx(filter) getWins(filter, BOX_BYNAME | BOX_REGEX)
 
-typedef unsigned int vk_t, sc_t, ;
+/*
+ *  `key_t' contains a virtual key in its first 16 bits and
+ *  a scan code in the upper 16
+ */
+
+typedef unsigned int vk_t, sc_t, key_t;
+
+#define KEY_TO_VK(c) (c & 0xffff)
+#define KEY_TO_SC(c) ((c >> 16) & 0xffff)
+#define TO_KEY(vk,sc) (sc << 16 | vk & 0xffff)
 
 HWND *getWinsBy(int (*filter_func)(HWND));
 
 int messageBox(char *body, char *title, int flags);
 
-void postKey(int vk, HWND hwnd);
+void postKey(key_t, HWND);
 
-void postKeyDown(int vk, HWND hwnd);
+void postKeyDown(key_t, HWND);
 
-void postKeyUp(int vk, HWND hwnd);
+void postKeyUp(key_t, HWND);
 
-void sendKey(int vk, HWND hwnd);
+void sendKey(key_t, HWND);
 
-void sendKeyDown(int vk, HWND hwnd);
+void sendKeyDown(key_t, HWND);
 
-void sendKeyUp(int vk, HWND hwnd);
+void sendKeyUp(key_t, HWND);
 
-void sendChar(char ch, HWND hwnd);
+void sendChar(char ch, HWND);
 
-void sendKeyChar(int vk, char ch, HWND hwnd);
+void sendKeyChar(key_t, char ch, HWND);
 
-void sendClick(int k, HWND hwnd);
+void sendClick(key_t, HWND);
 
-void moveMouse(double xprop, double yprop, HWND target);
+void moveMouse(double xprop, double yprop, HWND);
 
-void clickProp(int key, double xprop, double yprop, HWND target);
+void clickProp(int key, double xprop, double yprop, HWND);
 
-void setText(char *txt, HWND hwnd);
+void setText(char *txt, HWND);
 
-char *getName(HWND hwnd);
+char *getName(HWND);
 
-char *getClass(HWND hwnd);
+char *getClass(HWND);
 
 int fromVK(int vk);
 

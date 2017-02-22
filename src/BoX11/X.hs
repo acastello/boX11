@@ -139,7 +139,7 @@ clickWins k wins = inCurrentPos $ do
     return ()
 
 vkMap :: Array KeyCode VK
-vkMap = listArray (minBound, maxBound) $ (fromIntegral . fromEnum) <$>
+vkMap = listArray (0, 255)
    -- 0x0                                      0x8 Esc, Numbers...
     [ 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 0x00,0x1B,0x31,0x32,0x33,0x34,0x35,0x36
    -- 0x10                          Back Tab   0x18 Q-I
