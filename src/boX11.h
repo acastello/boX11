@@ -15,6 +15,8 @@ HWND *getWins(int flags, char *filter);
 #define getWinsByName(filter) getWins(filter, BOX_BYNAME)
 #define getWinsByNameEx(filter) getWins(filter, BOX_BYNAME | BOX_REGEX)
 
+typedef unsigned int vk_t, sc_t, ;
+
 HWND *getWinsBy(int (*filter_func)(HWND));
 
 int messageBox(char *body, char *title, int flags);
@@ -46,6 +48,8 @@ void setText(char *txt, HWND hwnd);
 char *getName(HWND hwnd);
 
 char *getClass(HWND hwnd);
+
+int fromVK(int vk);
 
 void test(HWND);
 
