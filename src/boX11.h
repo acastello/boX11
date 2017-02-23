@@ -30,6 +30,8 @@ HWND *getWinsBy(int (*filter_func)(HWND));
 
 int messageBox(char *body, char *title, int flags);
 
+Nigger_t
+
 void postKey(key_t, HWND);
 
 void postKeyDown(key_t, HWND);
