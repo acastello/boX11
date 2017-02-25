@@ -340,9 +340,10 @@ void focusWin(HWND hwnd)
     SetForegroundWindow(hwnd);
 }
 
-unsigned int fromVK(int vk)
+sc_t fromVK(vk_t vk)
 {
     return MapVirtualKey(vk, 0);
+}
 
 /*
  *		processIdOfWindow
