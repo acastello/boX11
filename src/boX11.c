@@ -1,16 +1,16 @@
+#include "boX11.h"
+
 #include <stdio.h>
 #include <regex.h>
 #include <unistd.h>
 
 #include <sched.h>
 
-#include "boX11.h"
+#define KEYDOWN(hwnd, key) hwnd, WM_KEYDOWN, KEY_TO_VK(key), \
+    1 | (key & 0xffff0000)
 
-#define KEYDOWN(hwnd, vk) hwnd, WM_KEYDOWN, vk, \
-    1 | (MapVirtualKey(vk,0) << 16)
-
-#define KEYUP(hwnd, vk) hwnd, WM_KEYUP, vk, \
-    1 | (1 << 31) | (MapVirtualKey(vk,0) << 16)
+#define KEYUP(hwnd, key) hwnd, WM_KEYUP, KEY_TO_VK(key), \
+    1 | (1 << 31) | (key & 0xffff0000)
 
 #define NWINS 64
 
@@ -153,57 +153,75 @@ int messageBox(char *body, char *title, int flags)
 /*
  *      postKey
  */
-inline void postKey(int vk, HWND hwnd)
+inline void postKey(key_t key, HWND hwnd)
 {
-    PostMessage(KEYDOWN(hwnd,vk));
-    PostMessage(KEYUP(hwnd,vk));
+    PostMessage(KEYDOWN(hwnd,key));
+    PostMessage(KEYUP(hwnd,key));
 }
 
 /*
  *      postKeyDown
  */
-inline void postKeyDown(int vk, HWND hwnd)
+inline void postKeyDown(key_t key, HWND hwnd)
 {
-    PostMessage(KEYDOWN(hwnd, vk));
+    PostMessage(KEYDOWN(hwnd, key));
 }
 
 /*
  *      postKeyUp
  */
-inline void postKeyUp(int vk, HWND hwnd)
+inline void postKeyUp(key_t key, HWND hwnd)
 {
-    PostMessage(KEYUP(hwnd,vk));
+    PostMessage(KEYUP(hwnd, key));
+}
+
+/*
+ *      postChar
+ */
+inline void postChar(wchar_t ch, HWND hwnd)
+{
+    PostMessage(hwnd, WM_CHAR, ch, 0);
+}
+
+/*
+ *      postKeyChar
+ */
+inline void postKeyChar(key_t key, wchar_t ch, HWND hwnd)
+{
+    PostMessage(KEYDOWN(hwnd, key));
+    PostMessage(hwnd, WM_CHAR, ch, 0);
+    PostMessage(KEYUP(hwnd, key));
 }
 
 /*******************************************************************************
  *		sendKey
  */
-inline void sendKey(int vk, HWND hwnd)
+inline void sendKey(key_t key, HWND hwnd)
 {
-    SendMessage(KEYDOWN(hwnd, vk));
-    SendMessage(KEYUP(hwnd, vk));
+    SendMessage(KEYDOWN(hwnd, key));
+    SendMessage(KEYUP(hwnd, key));
 }
 
 /*
  *		sendKeyDown
  */
-inline void sendKeyDown(int vk, HWND hwnd)
+inline void sendKeyDown(key_t key, HWND hwnd)
 {
-    SendMessage(KEYDOWN(hwnd, vk));
+    SendMessage(KEYDOWN(hwnd, key));
 }
 
 /*
  * 		sendKeyUp
  */
-inline void sendKeyUp(int vk, HWND hwnd)
+inline void sendKeyUp(key_t key, HWND hwnd)
 {
-    SendMessage(KEYUP(hwnd, vk));
+    SendMessage(KEYUP(hwnd, key));
 }
 
 /*******************************************************************************
  *		sendChar
  */
-inline void sendChar(char ch, HWND hwnd)
+inline void sendChar(wchar_t ch, HWND hwnd)
 {
     SendMessage(hwnd, WM_CHAR, ch, 0);
 }
@@ -211,17 +229,17 @@ inline void sendChar(char ch, HWND hwnd)
 /*
  *      sendKeyChar
  */
-inline void sendKeyChar(int vk, char ch, HWND hwnd)
+inline void sendKeyChar(key_t key, wchar_t ch, HWND hwnd)
 {
-    SendMessage(KEYDOWN(hwnd, vk));
+    SendMessage(KEYDOWN(hwnd, key));
     SendMessage(hwnd, WM_CHAR, ch, 0);
-    SendMessage(KEYUP(hwnd, vk));
+    SendMessage(KEYUP(hwnd, key));
 }
 
 /*
  *      sendClick
  */
-inline void sendClick(int k, HWND hwnd)
+inline void sendClick(vk_t k, HWND hwnd)
 {
     #define sendClick_delay 0
     switch (k) {
@@ -340,9 +358,9 @@ void focusWin(HWND hwnd)
     SetForegroundWindow(hwnd);
 }
 
-sc_t fromVK(vk_t vk)
+inline key_t fromVK(vk_t vk)
 {
-    return MapVirtualKey(vk, 0);
+    return TO_KEY(vk, MapVirtualKey(vk, 0));
 }
 
 /*

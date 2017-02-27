@@ -3,10 +3,11 @@
 module BoX11.Basic 
     ( module BoX11.Basic.Types 
     , forF, traverseF
+    , fromVK
     , getWins, getWinsBy, getCursorPos, messageBox
-    , postKey, postKeyUp
-    , sendKey, sendKeyDown
-    , sendKeyUp, sendChar, sendKeyChar, sendClick, moveMouse, clickProp, setText, getName
+    , postKey, postKeyDown, postKeyUp, postChar, postKeyChar
+    , sendKey, sendKeyDown, sendKeyUp, sendChar, sendKeyChar
+    , sendClick, moveMouse, clickProp, setText, getName
     , getClass, withMods, withPosted, loadLibrary, getProcAddress
     , getForeground, focusWin
     ) where
@@ -38,6 +39,13 @@ forF = flip traverseF
 
 traverseF :: Traversable t => (a -> IO b) -> t a -> IO ()
 traverseF f = traverse_ (forkIO . void . f)
+
+--
+-- fromVK
+--
+
+foreign import ccall unsafe "fromVK"
+    fromVK :: VK -> IO Key
 
 --------------------------------------------------------------------------------
 -- getWins  
@@ -99,42 +107,56 @@ foreign import ccall safe "messageBox"
 --------------------------------------------------------------------------------
 
 foreign import ccall unsafe "postKey"
-    postKey :: VK -> HWND -> IO ()
+    postKey :: Key -> HWND -> IO ()
 
 --
 -- postKeyDown
 --
 
 foreign import ccall unsafe "postKeyDown"
-    postKeyDown :: VK -> HWND -> IO ()
+    postKeyDown :: Key -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- postKeyUp
 --------------------------------------------------------------------------------
 
 foreign import ccall unsafe "postKeyUp"
-    postKeyUp :: VK -> HWND -> IO ()
+    postKeyUp :: Key -> HWND -> IO ()
+
+-----------
+-- postChar
+-----------
+
+foreign import ccall unsafe "postChar"
+    postChar :: Char -> HWND -> IO ()
+
+--
+-- postKeyChar 
+--
+
+foreign import ccall unsafe "postKeyChar"
+    postKeyChar :: Key -> Char -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendKey
 --------------------------------------------------------------------------------
 
 foreign import ccall unsafe "sendKey" 
-    sendKey :: VK -> HWND -> IO ()
+    sendKey :: Key -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendKeyDown
 --------------------------------------------------------------------------------
 
 foreign import ccall unsafe "sendKeyDown"
-    sendKeyDown :: VK -> HWND -> IO ()
+    sendKeyDown :: Key -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendKeyUp
 --------------------------------------------------------------------------------
 
 foreign import ccall unsafe "sendKeyUp"
-    sendKeyUp :: VK -> HWND -> IO ()
+    sendKeyUp :: Key -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendChar
@@ -148,7 +170,7 @@ foreign import ccall unsafe "sendChar"
 --------------------------------------------------------------------------------
 
 foreign import ccall unsafe "sendKeyChar"
-    sendKeyChar :: VK -> Char -> HWND -> IO ()
+    sendKeyChar :: Key -> Char -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendClick
@@ -207,14 +229,14 @@ foreign import ccall unsafe "getClass"
 -- withModifiers
 --------------------------------------------------------------------------------
 
-withMods :: [VK] -> HWND -> IO a -> IO a
+withMods :: [Key] -> HWND -> IO a -> IO a
 withMods mods window act = do
     traverse (flip sendKeyDown window) mods
     ret <- act
     traverse (flip sendKeyUp window) mods
     return ret
 
-withPosted :: [VK] -> HWND -> IO a -> IO a
+withPosted :: [Key] -> HWND -> IO a -> IO a
 withPosted mods window act = do
     traverse (flip postKeyDown window) mods
     ret <- act

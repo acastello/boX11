@@ -176,14 +176,16 @@ modsToVK m = mconcat
     , if testBit m 6 then [vk_WIN] else []
     ]
     
-portKM :: KM -> X ([VK], VK)
+portKM :: KM -> X ([VK], Key)
 portKM (KM u st (KSym ks)) = do
     XEnv { display = dpy } <- ask
     kc <- io $ keysymToKeycode dpy ks
-    return (modsToVK st, vkMap!kc)
+    key <- io $ B.fromVK (vkMap ! kc)
+    return (modsToVK st, key)
 portKM (KM u st (KCode kc)) = do
     XEnv { display = dpy } <- ask
-    return (modsToVK st, vkMap!kc)
+    key <- io $ B.fromVK (vkMap ! kc)
+    return (modsToVK st, key)
 portKM (KM u st (MButton b)) =
     return (modsToVK st, port' b)
     where 

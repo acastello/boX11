@@ -1,9 +1,9 @@
 module BoX11.Basic.Types
 -- windows types
-    ( HWND, HModule, VK
+    ( HWND, HModule, VK, Key
 -- boX11 C-types and values
     , Flags, byName, byClass, byNameEx, byClassEx, vk_num, vk_char
-    , vk_SHIFT, vk_CONTROL, vk_ALT, vk_WIN, vk_LWIN
+    , vk_SHIFT, vk_CONTROL, vk_ALT, vk_WIN, vk_LWIN, vk_TAB
     ) where
 
 import Data.Word
@@ -14,6 +14,7 @@ type HWND = Word64
 
 type HModule = Word64
 
+type Key = Word32
 type VK = Word32
 
 type Flags = CInt
@@ -42,3 +43,6 @@ vk_WIN = vk_LWIN
 
 vk_LWIN :: VK
 vk_LWIN = 0x5B
+
+vk_TAB :: VK
+vk_TAB = 0x09
