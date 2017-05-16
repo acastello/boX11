@@ -96,7 +96,7 @@ sendKeyUp w = do
     
 sendChar :: HWND -> X ()
 sendChar w = do
-    XEnv { currentEvent = ev } <- ask
+    XEnv { xlastevent = ev } <- ask
     (_, c:_) <- io $ lookupString (asKeyEvent ev)
     io $ B.sendChar c w
 
@@ -178,12 +178,12 @@ modsToVK m = mconcat
     
 portKM :: KM -> X ([VK], Key)
 portKM (KM u st (KSym ks)) = do
-    XEnv { display = dpy } <- ask
+    XEnv { xdisplay = dpy } <- ask
     kc <- io $ keysymToKeycode dpy ks
     key <- io $ B.fromVK (vkMap ! kc)
     return (modsToVK st, key)
 portKM (KM u st (KCode kc)) = do
-    XEnv { display = dpy } <- ask
+    XEnv { xdisplay = dpy } <- ask
     key <- io $ B.fromVK (vkMap ! kc)
     return (modsToVK st, key)
 portKM (KM u st (MButton b)) =
