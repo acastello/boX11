@@ -1,9 +1,9 @@
 import System.Process
 import System.Environment
 import System.Directory
-import System.Posix
+import System.Posix hiding (createDirectory)
 import System.FilePath
-import System.Posix.Temp
+-- import System.Posix.Directory
 import System.Exit
 
 import Control.Monad (when)
@@ -24,13 +24,17 @@ main = do
         verb = getVerbosity args
     fe <- fileExist rts
     when (not fe) $ error $ "couldn't find runtime library " ++ rts
-    tmpdir <- mkdtemp "box"
+    -- tmpdir <- mkdtemp "box"
+    let tmpdir = ".boxghc"
+    createDirectoryIfMissing False tmpdir
     let target' = replaceDirectory target $ tmpdir
     finally 
         (do
             copyFile target target'
             appendFile target' exportLines 
-            let cmd = (target' : tail args) ++ ["-dynamic", "-shared", "-threaded", "-fPIC", "-lboX11", "-XOverloadedStrings", "-outputdir", tmpdir, rts]
+            let cmd = (target' : tail args) ++ 
+                      ["-dynamic", "-shared", "-threaded", "-fPIC", "-lboX11"
+                      , "-XOverloadedStrings", "-outputdir", tmpdir, rts]
             when (verb > 0) $ 
                 putStrLn $ foldr1 (\a b -> a ++ ' ':b) (compiler:cmd)
                 

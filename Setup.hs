@@ -10,7 +10,15 @@ main = defaultMainWithHooks simpleUserHooks
     { postBuild = \args flags desc info -> do
         let LocalBuildInfo { buildDir = dist } = info
             BuildFlags { buildVerbosity = Flag v } = flags
-            cmd = "winegcc -shared -fPIC src/boX11.c -o " ++ dist ++ "/libboX11.dll.so /usr/lib/wine/user32.dll.so" ++ (if v >= verbose then " -v" else "") ++ "; mv " ++ dist ++ "/libboX11.dll.so " ++ dist ++ "/libboX11.so" 
+            cmd = concat ["winegcc -shared -fPIC src/boX11.c -o " 
+                         , dist
+                         , "/libboX11.dll.so /usr/lib/wine/user32.dll.so" 
+                         , (if v >= verbose then " -v" else "") 
+                         , "; mv " 
+                         , dist
+                         , "/libboX11.dll.so " 
+                         , dist 
+                         , "/libboX11.so" ]
             cmd2 = "winegcc -ldl -Wl,-rpath=. src/boxlaunch.c -o " ++ dist ++ "/boxlaunch.exe"
         when (v /= silent) $ putStrLn cmd
         runProgramInvocation silent $ simpleProgramInvocation "/bin/sh" ["-c", cmd]
