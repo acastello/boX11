@@ -7,8 +7,11 @@ module BoX11.Basic
     , getWins, getWinsBy, getCursorPos, messageBox
     , postKey, postKeyDown, postKeyUp, postChar, postKeyChar
     , sendKey, sendKeyDown, sendKeyUp, sendChar, sendKeyChar
-    , sendClick, moveMouse, clickProp, setText, getName
-    , getClass, withMods, withPosted, loadLibrary, getProcAddress
+    , sendClick, moveMouse
+    , click, clickAbs, clickLin
+    , clickProp
+    , setText, getName
+    , getClass, getPixel, withMods, withPosted, loadLibrary, getProcAddress
     , getForeground, focusWin
     ) where
 
@@ -74,7 +77,7 @@ getWinsBy f = do
     peekArray0 0 ptr
     
 foreign import ccall "wrapper" mkF :: (HWND -> IO CInt) -> IO (FunPtr (HWND -> IO CInt))
-foreign import ccall safe "getWinsBy" 
+foreign import ccall unsafe "getWinsBy" 
     getWinsBy' :: FunPtr (Word64 -> IO CInt) -> IO (Ptr Word64)
 
 --------------------------------------------------------------------------------
@@ -99,7 +102,7 @@ messageBox msg title = do
         useAsCString title $ \title' ->
             messageBox' (msg') (title') 0
             
-foreign import ccall safe "messageBox" 
+foreign import ccall unsafe "messageBox" 
     messageBox' :: CString -> CString -> CInt -> IO CInt
 
 --------------------------------------------------------------------------------
@@ -187,11 +190,28 @@ foreign import ccall unsafe "moveMouse"
     moveMouse :: Double -> Double -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
--- clickProp
+-- click
 --------------------------------------------------------------------------------
 
-foreign import ccall unsafe "clickProp"
-    clickProp :: VK -> Double -> Double -> HWND -> IO ()
+foreign import ccall unsafe "click"
+    click :: VK -> Double -> Double -> HWND -> IO ()
+
+{-# DEPRECATED clickProp "Since 0.4.0: Use click instead" #-}
+clickProp = click
+
+--------------------------------------------------------------------------------
+-- clickAbs
+--------------------------------------------------------------------------------
+
+foreign import ccall unsafe "clickAbs"
+    clickAbs :: VK -> Double -> Double -> HWND -> IO ()
+
+--------------------------------------------------------------------------------
+-- clickLin
+--------------------------------------------------------------------------------
+
+foreign import ccall unsafe "clickLin"
+    clickLin :: VK -> Double -> Double -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- setText
@@ -200,7 +220,7 @@ foreign import ccall unsafe "clickProp"
 setText :: ByteString -> HWND -> IO ()
 setText txt hwnd = useAsCString txt $ flip setText' hwnd 
 
-foreign import ccall safe "setText"
+foreign import ccall unsafe "setText"
     setText' :: CString -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
@@ -224,6 +244,16 @@ getClass hwnd = do
 
 foreign import ccall unsafe "getClass" 
     getClass' :: HWND -> IO CString
+
+getPixel :: HWND -> Int32 -> Int32 -> IO (Word8, Word8, Word8)
+getPixel hwnd x y = do
+    hex <- getPixel' hwnd x y
+    let f n = fromIntegral $ 0xff .&. (hex `shiftR` (8*n))
+    -- printf "%X" hex
+    return (f 0, f 1, f 2)
+
+foreign import ccall unsafe "getPixel"
+    getPixel' :: HWND -> Int32 -> Int32 -> IO Word32
 
 --------------------------------------------------------------------------------
 -- withModifiers
@@ -292,7 +322,7 @@ foreign import ccall "getProcAddress"
 -- test
 --------------------------------------------------------------------------------
 
-foreign import ccall safe "test"
+foreign import ccall unsafe "test"
     test :: HWND -> IO ()
 
 

@@ -7,10 +7,14 @@
 #include <sched.h>
 
 #define KEYDOWN(hwnd, key) hwnd, WM_KEYDOWN, KEY_TO_VK(key), \
-    1 | (key & 0xffff0000)
+    1 | (key & 0xff0000)
 
 #define KEYUP(hwnd, key) hwnd, WM_KEYUP, KEY_TO_VK(key), \
-    1 | (1 << 31) | (key & 0xffff0000)
+    1 | (1 << 30) | (1 << 31) | (key & 0xff0000)
+
+#define XY_TO_BITS(x,y) (( (((short) y) << 16) | (((short) x) & 0xffff) ))
+
+#define BETWEEN(min,x,max) (( (min) > (x) ? (min) : (max) < (x) ? (max) : (x) ))
 
 #define NWINS 64
 
@@ -189,7 +193,7 @@ inline void postChar(wchar_t ch, HWND hwnd)
 inline void postKeyChar(key_t key, wchar_t ch, HWND hwnd)
 {
     PostMessage(KEYDOWN(hwnd, key));
-    PostMessage(hwnd, WM_CHAR, ch, 0);
+    PostMessage(hwnd, WM_CHAR, ch, 1 | (key & 0xff0000) | (1 << 30));
     PostMessage(KEYUP(hwnd, key));
 }
 
@@ -241,54 +245,63 @@ inline void sendKeyChar(key_t key, wchar_t ch, HWND hwnd)
  */
 inline void sendClick(vk_t k, HWND hwnd)
 {
+    sendClickAt(k, hwnd, 0, 0);
+}
+
+/*
+ *      sendClickAt
+ */
+void sendClickAt(vk_t k, HWND hwnd, short x, short y)
+{
+    LPARAM pos = XY_TO_BITS(x,y);
     #define sendClick_delay 0
     switch (k) {
         case 1:
-            SendMessage(hwnd, WM_LBUTTONDOWN, 0, 0);
+            SendMessage(hwnd, WM_LBUTTONDOWN, 0, pos);
             #if sendClick_delay > 0
                 Sleep(sendClick_delay);
             #endif
-            SendMessage(hwnd, WM_LBUTTONUP, 0, 0);
+            SendMessage(hwnd, WM_LBUTTONUP, 0, pos);
             break;
         case 2:
-            SendMessage(hwnd, WM_MBUTTONDOWN, 0, 0);
+            SendMessage(hwnd, WM_MBUTTONDOWN, 0, pos);
             #if sendClick_delay > 0
                 Sleep(sendClick_delay);
             #endif
-            SendMessage(hwnd, WM_MBUTTONUP, 0, 0);
+            SendMessage(hwnd, WM_MBUTTONUP, 0, pos);
             break;
         case 3:
-            SendMessage(hwnd, WM_RBUTTONDOWN, 0, 0);
+            SendMessage(hwnd, WM_RBUTTONDOWN, 0, pos);
             #if sendClick_delay > 0
                 Sleep(sendClick_delay);
             #endif
-            SendMessage(hwnd, WM_RBUTTONUP, 0, 0);
+            SendMessage(hwnd, WM_RBUTTONUP, 0, pos);
             break;
         case 4:
-            SendMessage(hwnd, WM_XBUTTONDOWN, 1<<16, 0);
+            SendMessage(hwnd, WM_XBUTTONDOWN, 1<<16, pos);
             #if sendClick_delay > 0
                 Sleep(sendClick_delay);
             #endif
-            SendMessage(hwnd, WM_XBUTTONUP,   1<<16, 0);
+            SendMessage(hwnd, WM_XBUTTONUP,   1<<16, pos);
             break;
         case 5:
-            SendMessage(hwnd, WM_XBUTTONDOWN, 2<<16, 0);
+            SendMessage(hwnd, WM_XBUTTONDOWN, 2<<16, pos);
             #if sendClick_delay > 0
                 Sleep(sendClick_delay);
             #endif
-            SendMessage(hwnd, WM_XBUTTONUP,   2<<16, 0);
+            SendMessage(hwnd, WM_XBUTTONUP,   2<<16, pos);
             break;
         case 6:
-            SendMessage(hwnd, WM_MOUSEWHEEL, 1<<16, 0);
+            SendMessage(hwnd, WM_MOUSEWHEEL, 1<<16, pos);
             break;
         case 7:
-            SendMessage(hwnd, WM_MOUSEWHEEL, (-1)<<16, 0);
+            SendMessage(hwnd, WM_MOUSEWHEEL, (-1)<<16, pos);
             break;
         case 8:
-            SendMessage(hwnd, WM_MOUSEWHEEL, (1)<<16, 0);
+            SendMessage(hwnd, WM_MOUSEWHEEL, (1)<<16, pos);
             break;
         case 9:
-            SendMessage(hwnd, WM_MOUSEWHEEL, (-1)<<16, 0);
+            SendMessage(hwnd, WM_MOUSEWHEEL, (-1)<<16, pos);
             break;
         default:
             break;
@@ -298,31 +311,84 @@ inline void sendClick(vk_t k, HWND hwnd)
 /*
  *      moveMouse
  */
-inline void moveMouse(double xp, double yp, HWND hwnd)
+POINT moveMouse(double xp, double yp, HWND hwnd)
 {
-    RECT clir;
-    POINT p;
-
-    GetClientRect(hwnd, &clir);
-    p.x = xp*clir.right;
-    p.y = yp*clir.bottom;
-    ClientToScreen(hwnd, &p);
-    SetCursorPos(p.x, p.y);
+    return moveMouseLin(0, xp, 0, yp, hwnd);
 }
 
 /*
  *      moveMouseAbs
  */
+POINT moveMouseAbs(int x, int y, HWND hwnd)
+{
+    return moveMouseLin(x, 0.0, y, 0.0, hwnd);
+}
 
 /*
- *      clickProp
+ *      moveMouseLin
  */
-inline void clickProp(int k, double xp, double yp, HWND hwnd)
+POINT moveMouseLin(int x, double xp, int y, double yp, HWND hwnd)
 {
-    moveMouse(xp, yp, hwnd);
-    Sleep(70);
-    sendClick(k, hwnd);
-    Sleep(70);
+    RECT clir;
+    POINT p;
+    int calcx, calcy;
+
+    GetClientRect(hwnd, &clir);
+    calcx = x + xp * clir.right;
+    calcy = y + yp * clir.bottom;
+    p.x = BETWEEN(0, calcx, clir.right-1);
+    p.y = BETWEEN(0, calcy, clir.bottom-1);
+    ClientToScreen(hwnd, &p);
+    SetCursorPos(p.x, p.y);
+    // Sleep(1);
+    SendMessage(hwnd, WM_MOUSEMOVE, 0, XY_TO_BITS(p.x, p.y));
+    return p;
+}
+
+/*
+ *      click
+ */
+inline void click(int k, double xp, double yp, HWND hwnd)
+{
+    clickLin(k, 0, xp, 0, yp, hwnd);
+}
+
+/*
+ *      clickAbs
+ */
+inline void clickAbs(int k, int x, int y, HWND hwnd)
+{
+    clickLin(k, x, 0.0, y, 0.0, hwnd);
+}
+
+/*
+ *      clickLin
+ */
+inline void clickLin(int k, int x, double xp, int y, double yp, HWND hwnd)
+{
+    POINT p = moveMouseLin(x, xp, y, yp, hwnd);
+    sendClickAt(k, hwnd, p.x, p.y);
+}
+
+/*
+ *      getPixel
+ */
+DWORD getPixel(HWND hwnd, int x, int y)
+{
+    static HDC hdc = NULL;
+    POINT p;
+
+    if (!hdc)
+        hdc = GetDC(NULL);
+
+    if (!hwnd) {
+        return GetPixel(hdc, x, y);
+    } else {
+        p.x = x;
+        p.y = y;
+        ClientToScreen(hwnd, &p);
+        return GetPixel(hdc, p.x, p.y);
+    }
 }
 
 /*******************************************************************************
@@ -358,7 +424,7 @@ void focusWin(HWND hwnd)
     SetForegroundWindow(hwnd);
 }
 
-inline key_t fromVK(vk_t vk)
+key_t fromVK(vk_t vk)
 {
     return TO_KEY(vk, MapVirtualKey(vk, 0));
 }

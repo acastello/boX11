@@ -12,7 +12,7 @@ main = defaultMainWithHooks simpleUserHooks
             BuildFlags { buildVerbosity = Flag v } = flags
             cmd = concat ["winegcc -shared -fPIC src/boX11.c -o " 
                          , dist
-                         , "/libboX11.dll.so /usr/lib/wine/user32.dll.so" 
+                         , "/libboX11.dll.so -luser32 -lgdi32" 
                          , (if v >= verbose then " -v" else "") 
                          , "; mv " 
                          , dist

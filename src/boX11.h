@@ -45,10 +45,15 @@ void sendKeyChar(key_t, wchar_t, HWND);
 
 // void postClick(vk_t, HWND);
 void sendClick(vk_t, HWND);
+void sendClickAt(vk_t, HWND, short, short);
 
-void moveMouse(double xprop, double yprop, HWND);
+POINT moveMouse(double xprop, double yprop, HWND);
+POINT moveMouseAbs(int x, int y, HWND);
+POINT moveMouseLin(int x, double xprop, int y, double yprop, HWND);
 
-void clickProp(int key, double xprop, double yprop, HWND);
+void click(int key, double xprop, double yprop, HWND);
+void clickAbs(int key, int x, int y, HWND);
+void clickLin(int key, int x, double xprop, int y, double yprop, HWND);
 
 void setText(char *txt, HWND);
 

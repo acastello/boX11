@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     GetCursorPos(NULL);
     ERR;
 
-    hs_init = dlsym(handle, "hs_init");
+    hs_init = dlsym(handle, "hs_init_with_rtsopts");
     ERR;
     hs_exit = dlsym(handle, "hs_exit");
     ERR;

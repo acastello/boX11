@@ -4,7 +4,7 @@ all: $(ALL)
 
 libboX11.dll.so: boX11.c boX11.h
 	# winegcc -shared -fPIC boX11.c /usr/lib/wine/user32.dll.so -o libboX11.dll.so
-	winegcc -shared -fPIC boX11.c -o libboX11.dll.so
+	winegcc -lgdi32 -luser32 -shared -fPIC boX11.c -o libboX11.dll.so
 
 libboX11.so: libboX11.dll.so
 	cp libboX11.dll.so libboX11.so
