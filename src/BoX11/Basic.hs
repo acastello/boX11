@@ -204,14 +204,14 @@ clickProp = click
 --------------------------------------------------------------------------------
 
 foreign import ccall unsafe "clickAbs"
-    clickAbs :: VK -> Double -> Double -> HWND -> IO ()
+    clickAbs :: VK -> Int32 -> Int32 -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- clickLin
 --------------------------------------------------------------------------------
 
 foreign import ccall unsafe "clickLin"
-    clickLin :: VK -> Double -> Double -> HWND -> IO ()
+    clickLin :: VK -> Int32 -> Double -> Int32 -> Double -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- setText
@@ -273,7 +273,7 @@ withPosted mods window act = do
     traverse (flip postKeyUp window) mods
     return ret 
     
-foreign import ccall "GetForegroundWindow"
+foreign import ccall "getForeground"
     getForeground :: IO HWND
 
 foreign import ccall "focusWin"

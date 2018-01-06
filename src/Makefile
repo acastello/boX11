@@ -1,4 +1,4 @@
-ALL= libboX11.so main.exe boxlaunch.exe mainw.exe testbox.exe
+ALL= libboX11.so libboX11.a main.exe boxlaunch.exe mainw.exe testbox.exe
 
 all: $(ALL)
 

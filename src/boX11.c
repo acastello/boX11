@@ -131,6 +131,14 @@ HWND getFocus(void)
     return GetFocus();
 }
 
+/*
+ *      getForeground
+ */
+HWND getForeground(void)
+{
+    return GetForegroundWindow();
+}
+
 /*******************************************************************************
  *		getCursorPos
  */
@@ -339,8 +347,11 @@ POINT moveMouseLin(int x, double xp, int y, double yp, HWND hwnd)
     p.x = BETWEEN(0, calcx, clir.right-1);
     p.y = BETWEEN(0, calcy, clir.bottom-1);
     ClientToScreen(hwnd, &p);
+    // printf("[%p] (%d, %f, %d, %f) = (%d, %d)", hwnd, x, xp, y, yp, p.x, p.y);
     SetCursorPos(p.x, p.y);
-    // Sleep(1);
+    Sleep(1);
+    SendMessage(hwnd, WM_MOUSEMOVE, 0, XY_TO_BITS(p.x, p.y));
+    Sleep(1);
     SendMessage(hwnd, WM_MOUSEMOVE, 0, XY_TO_BITS(p.x, p.y));
     return p;
 }
@@ -375,11 +386,10 @@ inline void clickLin(int k, int x, double xp, int y, double yp, HWND hwnd)
  */
 DWORD getPixel(HWND hwnd, int x, int y)
 {
-    static HDC hdc = NULL;
+    HDC hdc;
     POINT p;
 
-    if (!hdc)
-        hdc = GetDC(NULL);
+    hdc = GetDC(hwnd);
 
     if (!hwnd) {
         return GetPixel(hdc, x, y);

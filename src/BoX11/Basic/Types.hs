@@ -7,11 +7,20 @@ module BoX11.Basic.Types
     , vk_subtract, vk_decimal, vk_divide, vk_esc, vk_return, vk_back, vk_tab
     , vk_insert , vk_delete, vk_home, vk_end, vk_prior, vk_next, vk_up, vk_down
     , vk_left , vk_right , vk_SHIFT, vk_CONTROL, vk_ALT, vk_WIN, vk_LWIN, vk_TAB
+    , VKt(..), vkt
     ) where
 
+import Control.Monad
+
 import Data.Word
-import Foreign.C
 import Data.Char
+import Data.Function
+
+import Foreign.C
+
+import Text.Read (readPrec, ReadPrec)
+import qualified Text.Read as T
+import Text.ParserCombinators.ReadP (skipSpaces)
 
 type HWND = Word64
 
@@ -76,3 +85,155 @@ vk_LWIN = 0x5B
 
 vk_TAB :: VK
 vk_TAB = 0x09
+
+data VKt =
+    VKChar Char
+  | VKNum Int
+  | VKF Int
+  | VKShift
+  | VKCtrl
+  | VKAlt
+  | VKWin
+  | VKEsc
+  | VKRet
+  | VKBac
+  | VKTab
+  | VKIns 
+  | VKDel
+  | VKHom
+  | VKEnd
+  | VKPri
+  | VKNex
+-- Arrows
+  | VKLef
+  | VKRig
+  | VKUp
+  | VKDow
+-- Keypad buttons
+  | VKPad Int
+  | VKDiv
+  | VKMul
+  | VKSub
+  | VKAdd
+  | VKSep
+  | VKDec
+  | VKLit Word32
+  deriving Show
+
+instance Eq VKt where
+    (==) = (==) `on` vkt
+
+instance Ord VKt where
+    compare = compare `on` vkt
+
+vkt :: VKt -> VK
+vkt vk = case vk of
+    VKChar c -> vk_char c
+    VKNum n -> vk_num n
+    VKF n -> vk_f n
+    VKPad n -> vk_numpad n
+    VKShift -> vk_SHIFT
+    VKCtrl -> vk_CONTROL
+    VKAlt -> vk_ALT
+    VKWin -> vk_WIN
+    VKEsc -> vk_esc
+    VKRet -> vk_return
+    VKBac -> vk_back
+    VKTab -> vk_tab
+    VKIns -> vk_insert
+    VKDel -> vk_delete
+    VKHom -> vk_home
+    VKEnd -> vk_end
+    VKPri -> vk_prior
+    VKNex -> vk_next
+    VKLef -> vk_left
+    VKRig -> vk_right
+    VKUp  -> vk_up
+    VKDow -> vk_down
+    VKDiv -> vk_divide
+    VKMul -> vk_multiply
+    VKSub -> vk_subtract
+    VKAdd -> vk_add
+    VKSep -> vk_separator
+    VKDec -> vk_decimal
+    VKLit n -> n
+
+instance Read VKt where
+    readPrec = T.parens $ T.choice $
+      fmap (\(t, s) -> ws >> getanystr s >> return t) 
+      [ (VKShift, ["shift"])
+      , (VKCtrl, ["ctrl", "control"])
+      , (VKAlt, ["alt", "meta"])
+      , (VKWin, ["win", "windows"])
+      , (VKEsc, ["esc", "escape"])
+      , (VKRet, ["ret", "return", "enter"])
+      , (VKBac, ["back", "backspace"])
+      , (VKTab, ["tab"])
+      , (VKIns, ["ins", "insert"])
+      , (VKDel, ["del", "delete"])
+      , (VKHom, ["home"])
+      , (VKEnd, ["end"])
+      , (VKPri, ["prior", "prior_page", "prev"])
+      , (VKNex, ["next", "next_page"])
+      , (VKLef, ["left", "arrow_left"])
+      , (VKRig, ["right", "arrow_right"])
+      , (VKUp,  ["up", "arrow_up"])
+      , (VKDow, ["down", "arrow_down"])
+      , (VKDiv, (++) <$> ["","keypad","kp_"] <*> ["div", "divide"])
+      , (VKMul, (++) <$> ["","keypad","kp_"] <*> ["mul", "mult", "multiply"])
+      , (VKSub, (++) <$> ["","keypad","kp_"] <*> ["sub", "subtract"])
+      , (VKAdd, (++) <$> ["","keypad","kp_"] <*> ["add", "plus"])
+      , (VKSep, (++) <$> ["","keypad","kp_"] <*> ["sep", "Separator"])
+      , (VKDec, (++) <$> ["","keypad","kp_"] <*> ["Dec", "Decimal"])
+      ] ++ 
+      [ do
+          ws
+          getanystr ["kp", "kp_", "keypad"]
+          n <- readPrec
+          when (n < 0 || n > 9) T.pfail
+          return $ VKPad n
+      , do
+          ws
+          getanystr ["space"]
+          return $ VKChar ' '
+      , do
+          c <- readPrec
+          unless (elem c ([' '] ++ ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']))
+              T.pfail
+          return $ VKChar $ toUpper c
+      , do 
+          n <- readPrec
+          when (n < 0 || n > 9) T.pfail
+          return $ VKNum n
+      , do
+          ws
+          getanystr ["F"]
+          n <- readPrec
+          when (n < 0 || n > 24) T.pfail
+          return $ VKF n
+      , do
+          ws
+          c <- T.get
+          unless (isAlpha c) T.pfail
+          return $ VKChar (toUpper c)
+      , do
+          ws
+          getanystr ["#"]
+          n <- readPrec
+          return $ VKLit n
+      , do
+          n <- readPrec
+          unless (n < 0 || n > 9) T.pfail
+          return $ VKLit n
+      ]
+
+-- utils
+
+ws :: ReadPrec ()
+ws = T.lift skipSpaces
+
+getstring :: String -> ReadPrec ()
+getstring = mapM_ (\c -> T.get >>= \c' -> when (toLower c /= toLower c') T.pfail)
+
+getanystr :: [String] -> ReadPrec ()
+getanystr xs = T.choice (getstring <$> xs)
