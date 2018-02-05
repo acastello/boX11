@@ -7,6 +7,7 @@ module BoX11.Basic
     , getWins, getWinsBy, getCursorPos, messageBox
     , postKey, postKeyDown, postKeyUp, postChar, postKeyChar
     , sendKey, sendKeyDown, sendKeyUp, sendChar, sendKeyChar
+    , postKeyUnsafe
     , sendClick, moveMouse
     , click, clickAbs, clickLin
     , clickProp
@@ -139,6 +140,12 @@ foreign import ccall unsafe "postChar"
 
 foreign import ccall unsafe "postKeyChar"
     postKeyChar :: Key -> Char -> HWND -> IO ()
+
+--
+-- postKeyUnsafe
+--
+foreign import ccall safe "postKey"
+    postKeyUnsafe :: Key -> HWND -> IO ()
 
 --------------------------------------------------------------------------------
 -- sendKey

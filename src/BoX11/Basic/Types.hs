@@ -47,8 +47,10 @@ vk_f f = 0x6F + fromIntegral f
 vk_numpad :: Integral a => a -> VK
 vk_numpad n = 0x60 + fromIntegral n
 
-vk_multiply = 0x6A :: VK 
-vk_add = 0x6B :: VK 
+vk_multiply :: VK
+vk_multiply = 0x6A 
+vk_add :: VK
+vk_add = 0x6B 
 vk_separator = 0x6C :: VK 
 vk_subtract = 0x6D :: VK 
 vk_decimal = 0x6E :: VK 
@@ -56,6 +58,9 @@ vk_divide = 0x6F :: VK
 vk_esc = 0x1B :: VK 
 vk_return = 0x0D :: VK 
 vk_back = 0x08 :: VK
+vk_comma = 0xBC :: VK
+vk_period = 0xBE :: VK
+vk_minus = 0xBD :: VK
 vk_tab = vk_TAB :: VK
 vk_insert = 0x2D :: VK
 vk_delete = 0x2E :: VK
@@ -97,6 +102,9 @@ data VKt =
   | VKEsc
   | VKRet
   | VKBac
+  | VKComma
+  | VKPeriod
+  | VKMinus
   | VKTab
   | VKIns 
   | VKDel
@@ -133,12 +141,15 @@ vkt vk = case vk of
     VKF n -> vk_f n
     VKPad n -> vk_numpad n
     VKShift -> vk_SHIFT
-    VKCtrl -> vk_CONTROL
-    VKAlt -> vk_ALT
-    VKWin -> vk_WIN
-    VKEsc -> vk_esc
-    VKRet -> vk_return
-    VKBac -> vk_back
+    VKCtrl  -> vk_CONTROL
+    VKAlt   -> vk_ALT
+    VKWin   -> vk_WIN
+    VKEsc   -> vk_esc
+    VKRet   -> vk_return
+    VKBac   -> vk_back
+    VKComma -> vk_comma
+    VKPeriod -> vk_period
+    VKMinus -> vk_minus
     VKTab -> vk_tab
     VKIns -> vk_insert
     VKDel -> vk_delete
@@ -168,6 +179,9 @@ instance Read VKt where
       , (VKEsc, ["esc", "escape"])
       , (VKRet, ["ret", "return", "enter"])
       , (VKBac, ["back", "backspace"])
+      , (VKComma, ["comma"])
+      , (VKPeriod, ["period"])
+      , (VKMinus, ["minus", "dash"])
       , (VKTab, ["tab"])
       , (VKIns, ["ins", "insert"])
       , (VKDel, ["del", "delete"])
