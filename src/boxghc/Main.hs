@@ -2,9 +2,11 @@ import System.Process
 import System.Environment
 import System.Directory
 import System.Posix hiding (createDirectory)
-import System.FilePath
--- import System.Posix.Directory
+import System.Posix.Files
 import System.Exit
+import System.FilePath
+import System.IO
+-- import System.Posix.Directory
 
 import Control.Monad (when)
 import Control.Exception
@@ -15,17 +17,20 @@ import Data.Maybe (fromMaybe, catMaybes)
 exportLines = unlines
   [ "-- lines added by boxghc, delete these if you can read them after compiling"
   , "foreign export ccall \"box_main\" main :: IO ()"
-  , "box_main_launch :: IO ()"
-  , "box_main_launch = do"
-  , "    call <- getArgs"
-  , "    callProcess \"cabal\" ([\"exec\", \"--\"] ++ call)"
+  ]
+
+launch soname = unlines
+  [ "#!/bin/sh"
+  , ""
+  , "appname=\"" ++ soname ++ "\""
+  , "cabal exec -- boxlaunch.exe \"$appname\" \"$@\""
   ]
 
 main = do
     let compiler = "ghc"
     args <- getArgs
-    libdir <- return . (filter (/= '\n')) =<< readProcess compiler ["--print-libdir"] "" 
-    vers <- return . (filter (/= '\n')) =<< readProcess compiler ["--numeric-version"] "" 
+    libdir <- filter (/= '\n') <$> readProcess compiler ["--print-libdir"] "" 
+    vers <- filter (/= '\n') <$> readProcess compiler ["--numeric-version"] "" 
     let target = if args == [] then error "no target" else head args
         rts = libdir ++ "/rts/libHSrts_thr-ghc" ++ vers ++ ".so"
         verb = getVerbosity args
@@ -35,18 +40,21 @@ main = do
     let tmpdir = ".boxghc"
     createDirectoryIfMissing False tmpdir
     let target' = replaceDirectory target $ tmpdir
+        targetso = takeDirectory target </> takeBaseName target <.> "so"
+        targetsh = takeDirectory target </> takeBaseName target
     finally 
         (do
             copyFile target target'
             appendFile target' exportLines 
             let cmd = (target' : tail args) ++ 
-                      ["-dynamic", "-shared", "-threaded", "-fPIC", "-lboX11"
-                      , "-main-is", "box_main_launch"
-                      , "-XOverloadedStrings", "-outputdir", tmpdir, rts]
+                  [ "-o", targetso, "-dynamic", "-shared", "-threaded", "-fPIC" 
+                  , "-lboX11" , "-XOverloadedStrings", "-outputdir", tmpdir, rts]
             when (verb > 0) $ 
                 putStrLn $ foldr1 (\a b -> a ++ ' ':b) (compiler:cmd)
                 
             waitForProcess =<< runProcess compiler cmd Nothing Nothing Nothing Nothing Nothing
+            writeFile targetsh (launch targetso)
+            setFileMode targetsh (stdFileMode `unionFileModes` ownerExecuteMode)
         )
         (do
             when (not $ elem "-keep-tmp-files" args) $ removeDirectoryRecursive tmpdir )
