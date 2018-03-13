@@ -12,7 +12,14 @@ import Data.List (isPrefixOf)
 import Text.Read (readMaybe)
 import Data.Maybe (fromMaybe, catMaybes)
 
-exportLines = "-- lines added by boxghc, delete these if you can read them after compiling\nforeign export ccall \"box_main\" main :: IO ()"
+exportLines = unlines
+  [ "-- lines added by boxghc, delete these if you can read them after compiling"
+  , "foreign export ccall \"box_main\" main :: IO ()"
+  , "box_main_launch :: IO ()"
+  , "box_main_launch = do"
+  , "    call <- getArgs"
+  , "    callProcess \"cabal\" ([\"exec\", \"--\"] ++ call)"
+  ]
 
 main = do
     let compiler = "ghc"
@@ -34,6 +41,7 @@ main = do
             appendFile target' exportLines 
             let cmd = (target' : tail args) ++ 
                       ["-dynamic", "-shared", "-threaded", "-fPIC", "-lboX11"
+                      , "-main-is", "box_main_launch"
                       , "-XOverloadedStrings", "-outputdir", tmpdir, rts]
             when (verb > 0) $ 
                 putStrLn $ foldr1 (\a b -> a ++ ' ':b) (compiler:cmd)
