@@ -22,7 +22,7 @@ exportLines = unlines
 launch soname = unlines
   [ "#!/bin/sh"
   , ""
-  , "appname=\"" ++ soname ++ "\""
+  , "appname=\"$(dirname $0)/" ++ soname ++ "\""
   , "cabal exec -- boxlaunch.exe \"$appname\" \"$@\""
   ]
 
