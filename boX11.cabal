@@ -10,6 +10,10 @@ build-type: Custom
 
 library
     hs-source-dirs:     src
+--     c-sources:          cbits/boX11.c 
+--     include-dirs:       /usr/include/wine/windows
+--     extra-libraries:    :user32.dll.so
+--     ld-options:         -rpath-link=/usr/lib/wine/ 
     exposed-modules:    BoX11,
                         BoX11.Basic
                         BoX11.Basic.Types

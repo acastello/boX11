@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 import Distribution.Simple
 import Distribution.Simple.Setup
 import Distribution.Simple.LocalBuildInfo
@@ -12,19 +14,20 @@ main = defaultMainWithHooks simpleUserHooks
             BuildFlags { buildVerbosity = Flag v } = flags
             cmd = concat ["winegcc -shared -fPIC src/boX11.c -o " 
                          , dist
-                         , "/libboX11.dll.so -luser32 -lgdi32" 
+                         ,"/libboX11.dll.so -luser32 -lgdi32" 
                          , (if v >= verbose then " -v" else "") 
                          , "; mv " 
                          , dist
-                         , "/libboX11.dll.so " 
+                         ,"/libboX11.dll.so " 
                          , dist 
-                         , "/libboX11.so" ]
+                         ,"/libboX11.so" ]
             cmd2 = "winegcc -ldl -Wl,-rpath=. src/boxlaunch.c -o " ++ dist ++ "/boxlaunch.exe"
         when (v /= silent) $ putStrLn cmd
         runProgramInvocation silent $ simpleProgramInvocation "/bin/sh" ["-c", cmd]
         runProgramInvocation silent $ simpleProgramInvocation "/bin/sh" ["-c", cmd2]
 
     , postCopy = \args flags desc info -> do
+        print (args, flags, desc, info)
         let LocalBuildInfo 
                 { buildDir = dist
                 , installDirTemplates = InstallDirs { libdir = d, bindir = b, libsubdir = sd }} = info
@@ -33,11 +36,18 @@ main = defaultMainWithHooks simpleUserHooks
             subdir = fromPathTemplate sd
             bindir = fromPathTemplate b
             targetdir = dir ++ "/" ++ subdir
-            cmd = "cp " ++ dist ++ "/libboX11.so " ++ targetdir
+            cmd = concat ["cp "
+                         , dist
+                         ,"/libboX11.so "
+                         , targetdir
+#if __GLASGOW_HASKELL__ >= 800
+                         , "/../"
+#endif
+                         ]
             cmd2 = "cp " ++ dist ++ "/boxlaunch.exe " ++ dist ++ "/boxlaunch.exe.so " ++ bindir
 
         when (v /= silent) $ putStrLn cmd >> putStrLn cmd2
         runProgramInvocation silent $ simpleProgramInvocation "/bin/sh" ["-c", cmd]        
         runProgramInvocation silent $ simpleProgramInvocation "/bin/sh" ["-c", cmd2]        
-    }
+    } 
 

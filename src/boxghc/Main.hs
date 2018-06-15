@@ -53,9 +53,10 @@ main = do
             when (verb > 0) $ 
                 putStrLn $ foldr1 (\a b -> a ++ ' ':b) (compiler:cmd)
                 
-            waitForProcess =<< runProcess compiler cmd Nothing Nothing Nothing Nothing Nothing
-            writeFile targetsh (launch targetso)
-            setFileMode targetsh (stdFileMode `unionFileModes` ownerExecuteMode)
+            e <- waitForProcess =<< runProcess compiler cmd Nothing Nothing Nothing Nothing Nothing
+            when (e == ExitSuccess) $ do
+                writeFile targetsh (launch targetso)
+                setFileMode targetsh (stdFileMode `unionFileModes` ownerExecuteMode)
         )
         (do
             when (not $ elem "-keep-tmp-files" args) $ removeDirectoryRecursive tmpdir )
