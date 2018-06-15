@@ -48,7 +48,8 @@ main = do
             appendFile target' exportLines 
             let cmd = (target' : tail args) ++ 
                   [ "-o", targetso, "-dynamic", "-shared", "-threaded", "-fPIC" 
-                  , "-lboX11" , "-XOverloadedStrings", "-outputdir", tmpdir, rts]
+                  , "-lboX11" , "-XOverloadedStrings", "-tmpdir", tmpdir
+                  , "-outputdir", tmpdir, rts]
             when (verb > 0) $ 
                 putStrLn $ foldr1 (\a b -> a ++ ' ':b) (compiler:cmd)
                 
